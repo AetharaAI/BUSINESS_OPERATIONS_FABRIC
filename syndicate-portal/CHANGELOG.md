@@ -6,6 +6,12 @@
 - Scaffolded standalone Next.js customer portal app in `syndicate-portal`.
 - Added authenticated pages for dashboard, business profile, agent mode, and audit log.
 - Added middleware route protection for portal pages.
+- Added branding assets and integrated logo in portal header UI.
+- Added generated favicon/icon assets (`favicon.ico`, `icon.png`, `apple-icon.png`).
+- Added internal admin onboarding UI (`/internal-admin`) for tenant + owner bootstrap.
+- Added first-login activation page (`/activate`) for password set flow.
+- Added billing scaffold page (`/billing`).
+- Extended internal admin into onboarding + billing control center with tenant selection and state tracking.
 
 ### API / BFF
 - Added server-side BFF routes for approved endpoint set:
@@ -18,6 +24,13 @@
   - `GET /api/v1/portal/audit-log`
 - Added typed request/response schemas and client error handling.
 - Added agent-mode warning banner when `effective_in_live_routing=false`.
+- Added admin bootstrap endpoint: `POST /api/admin/tenant-bootstrap`.
+- Added invite activation endpoint: `POST /api/admin/activate-invite`.
+- Added billing link scaffold endpoint: `GET /api/admin/billing-link`.
+- Added onboarding state endpoints: `GET|POST|PUT /api/admin/onboarding-state`.
+- Added customer billing/documents endpoint: `GET /api/portal/billing-documents`.
+- Added persistent additive billing state model (schema-versioned local store).
+- Added Stripe plan mapping parser using `legal-docs/Syndicate-Stripe-Prod-Ids.md` as source of truth.
 
 ### Testing
 - Added Vitest-based tests for API client and critical UI behavior.

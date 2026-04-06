@@ -44,8 +44,75 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
 3. Admin/bootstrap/webhook endpoints are not exposed in browser code.
 4. Session token is stored in HTTP-only cookie (`syndicate_portal_session`).
 
+## Internal Admin + Onboarding
+1. Internal admin route: `/internal-admin` (requires logged-in admin role and optional email allowlist).
+2. Tenant bootstrap API: `POST /api/admin/tenant-bootstrap`
+   - creates tenant via VoiceOps `POST /api/v1/tenants`
+   - bootstraps owner via VoiceOps `POST /api/v1/auth/bootstrap`
+   - returns temporary password + signed activation link
+3. First-login activation page: `/activate?token=...`
+4. Activation API: `POST /api/admin/activate-invite`
+   - validates signed invite token
+   - calls VoiceOps password reset path configured by `VOICEOPS_PASSWORD_RESET_PATH`
+5. Required env for onboarding:
+   - `VOICEOPS_PLATFORM_ADMIN_KEY`
+   - `PORTAL_INVITE_TOKEN_SECRET`
+   - `VOICEOPS_PASSWORD_RESET_PATH`
+6. Optional hardening env:
+   - `PORTAL_ADMIN_EMAIL_ALLOWLIST` (comma-separated)
+
+## Billing Scaffold
+1. Billing route: `/billing`
+2. Internal onboarding state API: `GET|POST|PUT /api/admin/onboarding-state`
+3. Customer billing/documents API: `GET /api/portal/billing-documents`
+4. Stripe mapping source of truth:
+   - `../legal-docs/Syndicate-Stripe-Prod-Ids.md`
+5. Runtime persistence:
+   - `data/tenant-billing-state.json` (schema versioned local state file)
+6. Configure:
+   - `PORTAL_BILLING_PROVIDER`
+   - `PORTAL_BILLING_MANAGE_URL_TEMPLATE` (supports `{tenant_id}` placeholder)
+7. Plan mapping behavior:
+   - `starter` and `growth` auto-populate deposit/final/monthly IDs and links from mapping doc
+   - `operator` keeps setup/custom billing manual; monthly price reference only
+8. Stripe webhook endpoint:
+   - `POST /api/webhooks/stripe`
+   - configure in Stripe as `https://voice.syndicateai.co/api/webhooks/stripe`
+   - required env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+   - handled events:
+     - `checkout.session.completed`
+     - `invoice.paid`
+     - `invoice.payment_failed`
+     - `customer.subscription.created`
+     - `customer.subscription.updated`
+     - `customer.subscription.deleted`
+
+## Operational Flow (First Customers)
+1. Close the customer.
+2. Send DocuSign manually and set agreement state in `/internal-admin`.
+3. Copy/send deposit payment link from `/internal-admin`.
+4. Mark deposit state `paid` after Stripe confirmation.
+5. Send portal invite and set invite status `sent`.
+6. Before go-live, copy/send final setup balance link and track status.
+7. Track monthly state (`inactive` -> `pending` -> `active`) for later subscription automation.
+
 ## Test Commands
 1. `npm run test`
+
+## Branding Assets
+1. Source logos are stored in `/logos` at the repo root.
+2. Portal-ready assets are stored in `public/branding`:
+   - `syndicate-logo-transparent-source.png` (RGBA source used for UI/icon generation)
+   - `syndicate-logo-black-bg-source.png` (alternate source with black background)
+   - `syndicate-logo-transparent-512.png`
+   - `syndicate-logo-transparent-256.png`
+   - `syndicate-logo-transparent-192.png`
+3. App icons/favicons are generated in `app/`:
+   - `favicon.ico`
+   - `icon.png`
+   - `apple-icon.png`
+4. Regeneration command pattern:
+   - `convert <source.png> -resize <size>x<size> <output.png>`
 
 ## Known Gaps
 1. Session hardening enhancements pending (token refresh, idle timeout policy).

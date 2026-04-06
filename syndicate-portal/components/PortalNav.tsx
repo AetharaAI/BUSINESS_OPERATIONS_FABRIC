@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { portalApi } from "@/lib/client/api";
@@ -8,7 +9,9 @@ const links = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/business-profile", label: "Business Profile" },
   { href: "/agent-mode", label: "Agent Mode" },
-  { href: "/audit-log", label: "Audit Log" }
+  { href: "/audit-log", label: "Audit Log" },
+  { href: "/billing", label: "Billing" },
+  { href: "/internal-admin", label: "Internal Admin" }
 ];
 
 export const PortalNav = () => {
@@ -23,7 +26,17 @@ export const PortalNav = () => {
   return (
     <header className="header">
       <div className="container header-inner">
-        <div className="brand">Syndicate Voice Portal</div>
+        <Link href="/dashboard" className="brand-link" aria-label="Syndicate Voice Portal Home">
+          <Image
+            src="/branding/syndicate-logo-transparent-192.png"
+            alt="Syndicate AI"
+            width={34}
+            height={34}
+            className="brand-logo"
+            priority
+          />
+          <span className="brand-text">Syndicate Voice Portal</span>
+        </Link>
         <nav className="nav" aria-label="Primary">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="nav-link" data-active={String(pathname === link.href)}>

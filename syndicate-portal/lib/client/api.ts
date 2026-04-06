@@ -1,4 +1,14 @@
 import {
+  AdminTenantBootstrapRequest,
+  AdminTenantBootstrapResponse,
+  AdminTenantBootstrapResponseSchema,
+  BillingPortalLinkResponse,
+  BillingPortalLinkResponseSchema,
+  InviteActivationRequest,
+  TenantBillingState,
+  TenantBillingStateListResponseSchema,
+  TenantBillingStateSchema,
+  TenantBillingStateUpdate,
   PortalAgentModeResponse,
   PortalAgentModeResponseSchema,
   PortalAgentModeUpdate,
@@ -110,5 +120,49 @@ export const portalApi = {
     const path = `/api/portal/audit-log${params.toString() ? `?${params.toString()}` : ""}`;
 
     return jsonRequest(path, { method: "GET" }, (payload) => PortalAuditLogResponseSchema.parse(payload));
-  }
+  },
+
+  adminBootstrapTenant: (input: AdminTenantBootstrapRequest): Promise<AdminTenantBootstrapResponse> =>
+    jsonRequest("/api/admin/tenant-bootstrap", { method: "POST", body: JSON.stringify(input) }, (payload) =>
+      AdminTenantBootstrapResponseSchema.parse(payload)
+    ),
+
+  activateInvite: (input: InviteActivationRequest): Promise<{ ok: true }> =>
+    jsonRequest("/api/admin/activate-invite", { method: "POST", body: JSON.stringify(input) }, (payload) => {
+      if (!payload || typeof payload !== "object" || (payload as { ok?: boolean }).ok !== true) {
+        throw new Error("Unexpected activation response");
+      }
+      return { ok: true };
+    }),
+
+  billingLink: (): Promise<BillingPortalLinkResponse> =>
+    jsonRequest("/api/admin/billing-link", { method: "GET" }, (payload) => BillingPortalLinkResponseSchema.parse(payload)),
+
+  listOnboardingStates: (): Promise<TenantBillingState[]> =>
+    jsonRequest("/api/admin/onboarding-state", { method: "GET" }, (payload) => TenantBillingStateListResponseSchema.parse(payload).items),
+
+  ensureOnboardingState: (payload: { tenant_id: string; tenant_name?: string; selected_plan?: string }): Promise<TenantBillingState> =>
+    jsonRequest("/api/admin/onboarding-state", { method: "POST", body: JSON.stringify(payload) }, (responsePayload) =>
+      TenantBillingStateSchema.parse(responsePayload)
+    ),
+
+  updateOnboardingState: (payload: TenantBillingStateUpdate): Promise<TenantBillingState> =>
+    jsonRequest("/api/admin/onboarding-state", { method: "PUT", body: JSON.stringify(payload) }, (responsePayload) =>
+      TenantBillingStateSchema.parse(responsePayload)
+    ),
+
+  billingDocuments: (): Promise<
+    TenantBillingState & { signed_documents: Array<{ id: string; name: string; url: string }>; invoices: Array<unknown> }
+  > =>
+    jsonRequest("/api/portal/billing-documents", { method: "GET" }, (payload) => {
+      const parsed = payload as Record<string, unknown>;
+      const state = TenantBillingStateSchema.parse(parsed);
+      return {
+        ...state,
+        signed_documents: Array.isArray(parsed.signed_documents)
+          ? (parsed.signed_documents as Array<{ id: string; name: string; url: string }>)
+          : [],
+        invoices: Array.isArray(parsed.invoices) ? parsed.invoices : []
+      };
+    })
 };

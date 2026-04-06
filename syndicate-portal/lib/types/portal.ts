@@ -61,6 +61,86 @@ export const SessionMeSchema = z.object({
   tenant_name: z.string().optional()
 });
 
+export const AdminTenantBootstrapRequestSchema = z.object({
+  tenant_name: z.string().min(2),
+  tenant_slug: z.string().min(2),
+  owner_email: z.string().email(),
+  owner_full_name: z.string().min(2)
+});
+
+export const AdminTenantBootstrapResponseSchema = z.object({
+  tenant_id: z.string(),
+  owner_email: z.string().email(),
+  temporary_password: z.string(),
+  invite_token: z.string(),
+  invite_url: z.string()
+});
+
+export const InviteActivationRequestSchema = z.object({
+  token: z.string().min(10),
+  new_password: z.string().min(8)
+});
+
+export const BillingPortalLinkResponseSchema = z.object({
+  status: z.enum(["not_configured", "configured"]),
+  provider: z.string(),
+  manage_url: z.string().nullable()
+});
+
+export const PlanSchema = z.enum(["starter", "growth", "operator"]);
+export const AgreementStatusSchema = z.enum(["draft", "sent", "signed"]);
+export const DepositStatusSchema = z.enum(["pending", "paid"]);
+export const FinalSetupStatusSchema = z.enum(["pending", "paid", "not_required"]);
+export const MonthlyStatusSchema = z.enum(["inactive", "pending", "active"]);
+export const PortalInviteStatusSchema = z.enum(["not_sent", "sent", "accepted"]);
+
+export const TenantBillingStateSchema = z.object({
+  tenant_id: z.string(),
+  tenant_name: z.string().nullable().optional(),
+  selected_plan: PlanSchema,
+  agreement_status: AgreementStatusSchema,
+  deposit_status: DepositStatusSchema,
+  final_setup_status: FinalSetupStatusSchema,
+  monthly_status: MonthlyStatusSchema,
+  stripe_customer_id: z.string().nullable().optional(),
+  stripe_subscription_id: z.string().nullable().optional(),
+  stripe_product_id_reference: z.string().nullable().optional(),
+  stripe_price_id_deposit: z.string().nullable().optional(),
+  stripe_price_id_final_setup: z.string().nullable().optional(),
+  stripe_price_id_monthly: z.string().nullable().optional(),
+  payment_link_deposit: z.string().nullable().optional(),
+  payment_link_final_setup: z.string().nullable().optional(),
+  docusign_envelope_id: z.string().nullable().optional(),
+  portal_invite_status: PortalInviteStatusSchema,
+  onboarding_notes: z.string().nullable().optional(),
+  updated_at: z.string()
+});
+
+export const TenantBillingStateUpdateSchema = z.object({
+  tenant_id: z.string(),
+  tenant_name: z.string().nullable().optional(),
+  selected_plan: PlanSchema.optional(),
+  agreement_status: AgreementStatusSchema.optional(),
+  deposit_status: DepositStatusSchema.optional(),
+  final_setup_status: FinalSetupStatusSchema.optional(),
+  monthly_status: MonthlyStatusSchema.optional(),
+  stripe_customer_id: z.string().nullable().optional(),
+  stripe_subscription_id: z.string().nullable().optional(),
+  stripe_product_id_reference: z.string().nullable().optional(),
+  stripe_price_id_deposit: z.string().nullable().optional(),
+  stripe_price_id_final_setup: z.string().nullable().optional(),
+  stripe_price_id_monthly: z.string().nullable().optional(),
+  payment_link_deposit: z.string().nullable().optional(),
+  payment_link_final_setup: z.string().nullable().optional(),
+  docusign_envelope_id: z.string().nullable().optional(),
+  portal_invite_status: PortalInviteStatusSchema.optional(),
+  onboarding_notes: z.string().nullable().optional()
+});
+
+export const TenantBillingStateListResponseSchema = z.object({
+  items: z.array(TenantBillingStateSchema)
+});
+
 export type AgentMode = z.infer<typeof AgentModeSchema>;
 export type PortalDashboard = z.infer<typeof PortalDashboardSchema>;
 export type PortalBusinessProfile = z.infer<typeof PortalBusinessProfileSchema>;
@@ -69,3 +149,10 @@ export type PortalAgentModeUpdate = z.infer<typeof PortalAgentModeUpdateSchema>;
 export type PortalAuditLogEntry = z.infer<typeof PortalAuditLogEntrySchema>;
 export type PortalAuditLogResponse = z.infer<typeof PortalAuditLogResponseSchema>;
 export type SessionMe = z.infer<typeof SessionMeSchema>;
+export type AdminTenantBootstrapRequest = z.infer<typeof AdminTenantBootstrapRequestSchema>;
+export type AdminTenantBootstrapResponse = z.infer<typeof AdminTenantBootstrapResponseSchema>;
+export type InviteActivationRequest = z.infer<typeof InviteActivationRequestSchema>;
+export type BillingPortalLinkResponse = z.infer<typeof BillingPortalLinkResponseSchema>;
+export type Plan = z.infer<typeof PlanSchema>;
+export type TenantBillingState = z.infer<typeof TenantBillingStateSchema>;
+export type TenantBillingStateUpdate = z.infer<typeof TenantBillingStateUpdateSchema>;

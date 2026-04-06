@@ -3,6 +3,7 @@ import { readSessionToken } from "@/lib/server/session";
 import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { safeRouteError, unauthorized } from "@/app/api/_lib/route-utils";
 import { SessionMeSchema } from "@/lib/types/portal";
+import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -18,8 +19,9 @@ export async function GET(): Promise<NextResponse> {
       token
     });
 
-    const parsed = SessionMeSchema.safeParse(payload);
-    return NextResponse.json(parsed.success ? parsed.data : payload);
+    const unwrapped = unwrapVoiceOpsPayload(payload);
+    const parsed = SessionMeSchema.safeParse(unwrapped);
+    return NextResponse.json(parsed.success ? parsed.data : unwrapped);
   } catch (error) {
     return safeRouteError(error);
   }

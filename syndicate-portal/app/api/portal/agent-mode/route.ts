@@ -6,6 +6,7 @@ import {
   PortalAgentModeUpdateSchema
 } from "@/lib/types/portal";
 import { safeRouteError, unauthorized } from "@/app/api/_lib/route-utils";
+import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -21,7 +22,7 @@ export async function GET(): Promise<NextResponse> {
       token
     });
 
-    const parsed = PortalAgentModeResponseSchema.safeParse(payload);
+    const parsed = PortalAgentModeResponseSchema.safeParse(unwrapVoiceOpsPayload(payload));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid agent mode response from VoiceOps", details: parsed.error.flatten() },
@@ -58,7 +59,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       body: parsedUpdate.data
     });
 
-    const parsed = PortalAgentModeResponseSchema.safeParse(payload);
+    const parsed = PortalAgentModeResponseSchema.safeParse(unwrapVoiceOpsPayload(payload));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid agent mode response from VoiceOps", details: parsed.error.flatten() },

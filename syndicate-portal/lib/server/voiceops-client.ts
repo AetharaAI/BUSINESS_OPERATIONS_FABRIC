@@ -23,12 +23,14 @@ export const voiceOpsRequest = async <TResponse>(params: {
   path: string;
   token?: string | null;
   body?: unknown;
+  headers?: Record<string, string>;
 }): Promise<TResponse> => {
   const response = await fetch(joinUrl(serverEnv.voiceOpsApiBaseUrl, params.path), {
     method: params.method,
     headers: {
       "Content-Type": "application/json",
-      ...(params.token ? { Authorization: `Bearer ${params.token}` } : {})
+      ...(params.token ? { Authorization: `Bearer ${params.token}` } : {}),
+      ...(params.headers ?? {})
     },
     body: params.body ? JSON.stringify(params.body) : undefined,
     cache: "no-store"

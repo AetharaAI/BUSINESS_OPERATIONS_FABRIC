@@ -62,6 +62,21 @@ textarea {
   font-size: 1.08rem;
 }
 
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  border-radius: 8px;
+}
+
+.brand-text {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
 .nav {
   display: flex;
   gap: 12px;

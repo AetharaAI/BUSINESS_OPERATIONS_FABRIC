@@ -5,6 +5,15 @@ export const unauthorized = (): NextResponse =>
   NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
 export const safeRouteError = (error: unknown): NextResponse => {
+  if (error instanceof Error) {
+    if (error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (error.message === "Forbidden") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   if (error instanceof VoiceOpsError) {
     return NextResponse.json(
       {

@@ -3,6 +3,7 @@ import { readSessionToken } from "@/lib/server/session";
 import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { PortalAuditLogResponseSchema } from "@/lib/types/portal";
 import { safeRouteError, unauthorized } from "@/app/api/_lib/route-utils";
+import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       token
     });
 
-    const parsed = PortalAuditLogResponseSchema.safeParse(payload);
+    const parsed = PortalAuditLogResponseSchema.safeParse(unwrapVoiceOpsPayload(payload));
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid audit log response from VoiceOps", details: parsed.error.flatten() },
