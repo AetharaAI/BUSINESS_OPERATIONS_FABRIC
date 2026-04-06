@@ -17,13 +17,13 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
 1. `cd syndicate-portal`
 2. `npm install`
 3. `npm run dev`
-4. Open `http://localhost:3000/login`
+4. Open `http://localhost:3100/login`
 
 ## Production Build
 1. `cd syndicate-portal`
 2. `npm ci`
 3. `npm run build`
-4. `npm run start`
+4. `npm run start` (defaults to port `3100`, override with `PORT=<port> npm run start`)
 
 ## Deploy Notes
 1. Deploy portal as a separate app/service from VoiceOps.

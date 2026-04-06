@@ -5,9 +5,9 @@
   "author": "Cory Gibson (AetherPro Technologies)",
   "license": "MIT",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p ${PORT:-3100}",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p ${PORT:-3100}",
     "test": "vitest run",
     "test:watch": "vitest"
   },

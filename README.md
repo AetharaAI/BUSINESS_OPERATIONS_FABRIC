@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Then open: `http://localhost:3000/login`
+Then open: `http://localhost:3100/login`
 
 ## Build & Test
 
