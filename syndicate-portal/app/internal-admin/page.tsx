@@ -6,6 +6,7 @@ import { ErrorPanel, LoadingPanel } from "@/components/LoadStates";
 import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
 import { Plan, TenantBillingState } from "@/lib/types/portal";
+import { canViewInternalAdmin } from "@/lib/client/authz";
 
 const copyToClipboard = async (value: string): Promise<void> => {
   await navigator.clipboard.writeText(value);
@@ -56,10 +57,8 @@ export default function InternalAdminPage() {
   }>(null);
 
   const canAccess = useMemo(() => {
-    if (!meState.data?.role) return false;
-    const role = meState.data.role.toLowerCase();
-    return role === "admin" || role === "platform_admin" || role === "owner";
-  }, [meState.data?.role]);
+    return canViewInternalAdmin(meState.data);
+  }, [meState.data]);
 
   const selectedState: TenantBillingState | null = useMemo(() => {
     if (!statesResource.data?.length) return null;

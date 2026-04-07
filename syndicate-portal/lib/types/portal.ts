@@ -57,6 +57,7 @@ export const SessionMeSchema = z.object({
   user_id: z.string().optional(),
   email: z.string().optional(),
   role: z.string().optional(),
+  is_internal_admin: z.boolean().optional(),
   tenant_id: z.string().optional(),
   tenant_name: z.string().optional()
 });

@@ -4,6 +4,7 @@ import { readSessionToken } from "@/lib/server/session";
 import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { SessionMeSchema } from "@/lib/types/portal";
 import { serverEnv } from "@/lib/server/env";
+import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 
 const buildManageUrl = (tenantId: string): string | null => {
   if (!serverEnv.portalBillingManageUrlTemplate) {
@@ -25,7 +26,7 @@ export async function GET(): Promise<NextResponse> {
       path: "/api/v1/auth/me",
       token
     });
-    const me = SessionMeSchema.parse(mePayload);
+    const me = SessionMeSchema.parse(unwrapVoiceOpsPayload(mePayload));
     const tenantId = me.tenant_id || "";
 
     const manageUrl = tenantId ? buildManageUrl(tenantId) : null;

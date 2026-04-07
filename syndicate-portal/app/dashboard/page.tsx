@@ -8,7 +8,16 @@ import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
 
 export default function DashboardPage() {
-  const loader = useCallback(() => portalApi.dashboard(), []);
+  const loader = useCallback(async () => {
+    const dashboard = await portalApi.dashboard();
+    let billing: Awaited<ReturnType<typeof portalApi.billingDocuments>> | null = null;
+    try {
+      billing = await portalApi.billingDocuments();
+    } catch {
+      billing = null;
+    }
+    return { dashboard, billing };
+  }, []);
   const { data, error, isLoading, reload } = useApiResource(loader);
 
   return (
@@ -18,7 +27,7 @@ export default function DashboardPage() {
         <div className="container">
           {isLoading ? <LoadingPanel label="Loading dashboard..." /> : null}
           {error ? <ErrorPanel message={error} onRetry={() => void reload()} /> : null}
-          {data ? <DashboardView data={data} /> : null}
+          {data ? <DashboardView dashboard={data.dashboard} billing={data.billing} /> : null}
         </div>
       </main>
     </>

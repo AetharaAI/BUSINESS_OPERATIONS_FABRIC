@@ -8,7 +8,10 @@ import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
 
 export default function BusinessProfilePage() {
-  const loader = useCallback(() => portalApi.businessProfile(), []);
+  const loader = useCallback(async () => {
+    const [profile, me] = await Promise.all([portalApi.businessProfile(), portalApi.me()]);
+    return { profile, me };
+  }, []);
   const { data, error, isLoading, reload } = useApiResource(loader);
 
   return (
@@ -18,7 +21,7 @@ export default function BusinessProfilePage() {
         <div className="container">
           {isLoading ? <LoadingPanel label="Loading business profile..." /> : null}
           {error ? <ErrorPanel message={error} onRetry={() => void reload()} /> : null}
-          {data ? <BusinessProfileView profile={data} /> : null}
+          {data ? <BusinessProfileView profile={data.profile} fallbackPrimaryContactEmail={data.me.email ?? null} /> : null}
         </div>
       </main>
     </>

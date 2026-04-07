@@ -132,6 +132,10 @@ textarea {
   padding: 10px 14px;
   border-radius: 9px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 
 .btn-primary {
@@ -147,6 +151,23 @@ textarea {
 .btn-secondary {
   border: 1px solid var(--border);
   background: var(--surface);
+}
+
+.btn-cta {
+  background: #1f2937;
+  color: #ffffff;
+  border: 1px solid #1f2937;
+}
+
+.btn-cta:hover {
+  background: #111827;
+}
+
+.btn-disabled {
+  border: 1px solid var(--border);
+  background: #eef2f7;
+  color: #7c8794;
+  cursor: not-allowed;
 }
 
 .alert {

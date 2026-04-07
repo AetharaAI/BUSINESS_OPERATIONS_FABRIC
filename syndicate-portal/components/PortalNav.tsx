@@ -1,23 +1,31 @@
 "use client";
 
+import { useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { portalApi } from "@/lib/client/api";
+import { useApiResource } from "@/lib/client/use-api-resource";
+import { canViewAuditLog, canViewInternalAdmin } from "@/lib/client/authz";
 
-const links = [
+const baseLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/business-profile", label: "Business Profile" },
   { href: "/agent-mode", label: "Agent Mode" },
-  { href: "/audit-log", label: "Audit Log" },
   { href: "/billing", label: "Billing" },
-  { href: "/change-password", label: "Change Password" },
-  { href: "/internal-admin", label: "Internal Admin" }
+  { href: "/change-password", label: "Change Password" }
 ];
 
 export const PortalNav = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const meState = useApiResource(useCallback(() => portalApi.me(), []));
+
+  const links = [
+    ...baseLinks,
+    ...(canViewAuditLog(meState.data) ? [{ href: "/audit-log", label: "Audit Log" }] : []),
+    ...(canViewInternalAdmin(meState.data) ? [{ href: "/internal-admin", label: "Internal Admin" }] : [])
+  ];
 
   const logout = async (): Promise<void> => {
     await portalApi.logout();
