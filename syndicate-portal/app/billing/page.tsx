@@ -58,7 +58,7 @@ export default function BillingPage() {
                 <h2>Payment Actions</h2>
                 <div className="grid-2">
                   <div className="stack">
-                    <div className="label">Deposit payment action</div>
+                    <div className="label">To pay the onboarding deposit, click below.</div>
                     {data.billing.payment_link_deposit ? (
                       <a className="btn btn-cta" href={data.billing.payment_link_deposit} target="_blank" rel="noreferrer">
                         {data.billing.deposit_status === "paid" ? "Deposit Paid" : "Pay Deposit"}
@@ -71,7 +71,7 @@ export default function BillingPage() {
                     {!data.billing.payment_link_deposit ? <div className="muted">Deposit payment link is not configured yet.</div> : null}
                   </div>
                   <div className="stack">
-                    <div className="label">Final setup payment action</div>
+                    <div className="label">To pay the final setup balance, click below.</div>
                     {data.billing.payment_link_final_setup ? (
                       <a className="btn btn-cta" href={data.billing.payment_link_final_setup} target="_blank" rel="noreferrer">
                         {data.billing.final_setup_status === "paid" ? "Final Setup Paid" : "Pay Final Setup"}
@@ -86,7 +86,7 @@ export default function BillingPage() {
                     ) : null}
                   </div>
                   <div className="stack">
-                    <div className="label">Monthly service action</div>
+                    <div className="label">When monthly service is ready, use this action.</div>
                     {data.billingLink.manage_url ? (
                       <a className="btn btn-cta" href={data.billingLink.manage_url} target="_blank" rel="noreferrer">
                         {data.billing.monthly_status === "active" ? "Manage Monthly Service" : "Start Monthly Service"}

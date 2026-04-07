@@ -11,7 +11,7 @@ import { canViewAuditLog, canViewInternalAdmin } from "@/lib/client/authz";
 const baseLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/business-profile", label: "Business Profile" },
-  { href: "/agent-mode", label: "Agent Mode" },
+  { href: "/agent-mode", label: "Call Settings" },
   { href: "/billing", label: "Billing" },
   { href: "/change-password", label: "Change Password" }
 ];

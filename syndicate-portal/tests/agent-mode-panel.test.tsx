@@ -38,7 +38,7 @@ describe("AgentModePanel", () => {
     );
 
     expect(screen.getByText(/read-only/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /save mode/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /submit call settings request/i })).not.toBeInTheDocument();
   });
 
   it("submits update in editable mode", async () => {
@@ -59,8 +59,8 @@ describe("AgentModePanel", () => {
       />
     );
 
-    await user.selectOptions(screen.getByLabelText("Mode"), "bypass");
-    await user.click(screen.getByRole("button", { name: /save mode/i }));
+    await user.selectOptions(screen.getByLabelText("Call handling mode"), "bypass");
+    await user.click(screen.getByRole("button", { name: /submit call settings request/i }));
     expect(onSave).toHaveBeenCalledWith({ mode: "bypass", reason: undefined });
   });
 });

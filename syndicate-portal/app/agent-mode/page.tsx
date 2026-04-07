@@ -24,7 +24,7 @@ export default function AgentModePage() {
     try {
       await portalApi.updateAgentMode(update);
       await modeState.reload();
-      setSaveSuccess("Agent mode updated.");
+      setSaveSuccess("Call settings request submitted.");
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Update failed");
       throw error;
@@ -39,7 +39,7 @@ export default function AgentModePage() {
       <PortalNav />
       <main className="content">
         <div className="container stack">
-          {loading ? <LoadingPanel label="Loading agent mode..." /> : null}
+          {loading ? <LoadingPanel label="Loading call settings..." /> : null}
           {error ? <ErrorPanel message={error} onRetry={() => void modeState.reload()} /> : null}
           {saveError ? <div className="alert alert-error">{saveError}</div> : null}
           {saveSuccess ? <div className="alert alert-warning">{saveSuccess}</div> : null}
