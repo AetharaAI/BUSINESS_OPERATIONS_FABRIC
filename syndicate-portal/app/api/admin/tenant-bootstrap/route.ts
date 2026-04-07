@@ -59,6 +59,23 @@ const extractOwnerEmail = (payload: unknown, fallback: string): string => {
   );
 };
 
+const normalizeBaseUrl = (value: string): string => value.replace(/\/+$/, "");
+
+const resolvePortalBaseUrl = (request: NextRequest): string => {
+  if (serverEnv.portalPublicBaseUrl) {
+    return normalizeBaseUrl(serverEnv.portalPublicBaseUrl);
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const proto = forwardedProto || "https";
+    return `${proto}://${forwardedHost}`;
+  }
+
+  return normalizeBaseUrl(request.nextUrl.origin);
+};
+
 const buildLegacyInvite = (params: {
   ownerEmail: string;
   ownerFullName: string;
@@ -151,6 +168,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const body = parsedBody.data;
+    const portalBaseUrl = resolvePortalBaseUrl(request);
 
     let result:
       | {
@@ -184,7 +202,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const passwordResetToken = extractPasswordResetToken(unwrapped);
       const ownerEmail = extractOwnerEmail(unwrapped, body.owner_email);
       const inviteUrl = passwordResetToken
-        ? `${request.nextUrl.origin}/reset-password?token=${encodeURIComponent(passwordResetToken)}`
+        ? `${portalBaseUrl}/reset-password?token=${encodeURIComponent(passwordResetToken)}`
         : null;
 
       result = {
@@ -213,7 +231,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           ownerEmail: body.owner_email,
           ownerFullName: body.owner_full_name,
           platformAdminKey: serverEnv.voiceOpsPlatformAdminKey,
-          origin: request.nextUrl.origin
+          origin: portalBaseUrl
         });
       } else {
         throw error;

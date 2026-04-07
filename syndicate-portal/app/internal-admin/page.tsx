@@ -11,6 +11,20 @@ const copyToClipboard = async (value: string): Promise<void> => {
   await navigator.clipboard.writeText(value);
 };
 
+const buildInviteEmailBody = (params: {
+  ownerEmail: string;
+  tenantId: string;
+  inviteUrl: string | null | undefined;
+}): string =>
+  [
+    `Welcome to Syndicate Voice Portal.`,
+    ``,
+    `Tenant ID: ${params.tenantId}`,
+    params.inviteUrl ? `Set your password and access your portal: ${params.inviteUrl}` : `Your invite link is not available yet.`,
+    ``,
+    `If the link expires, contact support for a new invitation.`
+  ].join("\n");
+
 export default function InternalAdminPage() {
   const meState = useApiResource(useCallback(() => portalApi.me(), []));
   const statesResource = useApiResource(useCallback(() => portalApi.listOnboardingStates(), []));
@@ -269,16 +283,61 @@ export default function InternalAdminPage() {
                       <strong>Temp password:</strong> {bootstrapResult.temporary_password || "n/a"}
                     </div>
                     <div>
-                      <strong>Password reset token:</strong> {bootstrapResult.password_reset_token || "n/a"}
+                      <strong>Password reset token:</strong>
+                      {bootstrapResult.password_reset_token ? (
+                        <div className="stack">
+                          <textarea
+                            className="textarea overflow-anywhere"
+                            rows={3}
+                            readOnly
+                            value={bootstrapResult.password_reset_token}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => void copyToClipboard(bootstrapResult.password_reset_token!)}
+                          >
+                            Copy Reset Token
+                          </button>
+                        </div>
+                      ) : (
+                        " n/a"
+                      )}
                     </div>
                     <div>
-                      <strong>Activation URL:</strong>{" "}
+                      <strong>Activation URL:</strong>
                       {bootstrapResult.invite_url ? (
-                        <a href={bootstrapResult.invite_url} target="_blank" rel="noreferrer">
-                          {bootstrapResult.invite_url}
-                        </a>
+                        <div className="stack">
+                          <input className="input overflow-anywhere" readOnly value={bootstrapResult.invite_url} />
+                          <div className="grid-2">
+                            <a className="btn btn-secondary" href={bootstrapResult.invite_url} target="_blank" rel="noreferrer">
+                              Open Invite Link
+                            </a>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={() => void copyToClipboard(bootstrapResult.invite_url!)}
+                            >
+                              Copy Invite Link
+                            </button>
+                          </div>
+                          <a
+                            className="btn btn-secondary"
+                            href={`mailto:${encodeURIComponent(
+                              bootstrapResult.owner_email
+                            )}?subject=${encodeURIComponent("Your Syndicate Voice Portal Access")}&body=${encodeURIComponent(
+                              buildInviteEmailBody({
+                                ownerEmail: bootstrapResult.owner_email,
+                                tenantId: bootstrapResult.tenant_id,
+                                inviteUrl: bootstrapResult.invite_url
+                              })
+                            )}`}
+                          >
+                            Draft Invite Email
+                          </a>
+                        </div>
                       ) : (
-                        "n/a"
+                        " n/a"
                       )}
                     </div>
                   </div>
