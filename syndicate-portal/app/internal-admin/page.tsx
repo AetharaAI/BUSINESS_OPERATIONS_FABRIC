@@ -7,13 +7,6 @@ import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
 import { Plan, TenantBillingState } from "@/lib/types/portal";
 
-const toSlug = (value: string): string =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
 const copyToClipboard = async (value: string): Promise<void> => {
   await navigator.clipboard.writeText(value);
 };
@@ -35,8 +28,9 @@ export default function InternalAdminPage() {
   const [bootstrapResult, setBootstrapResult] = useState<null | {
     tenant_id: string;
     owner_email: string;
-    temporary_password: string;
-    invite_url: string;
+    temporary_password?: string | null;
+    password_reset_token?: string | null;
+    invite_url?: string | null;
   }>(null);
 
   const canAccess = useMemo(() => {
@@ -60,14 +54,13 @@ export default function InternalAdminPage() {
     try {
       const payload = await portalApi.adminBootstrapTenant({
         tenant_name: tenantName.trim(),
-        tenant_slug: toSlug(tenantName),
         owner_email: ownerEmail.trim().toLowerCase(),
         owner_full_name: ownerName.trim()
       });
       setBootstrapResult(payload);
       setSelectedTenantId(payload.tenant_id);
       await statesResource.reload();
-      setInfo("Tenant bootstrapped and onboarding state initialized.");
+      setInfo("Tenant created and onboarding state initialized.");
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to bootstrap tenant");
     } finally {
@@ -171,13 +164,20 @@ export default function InternalAdminPage() {
                       <strong>Owner:</strong> {bootstrapResult.owner_email}
                     </div>
                     <div>
-                      <strong>Temp password:</strong> {bootstrapResult.temporary_password}
+                      <strong>Temp password:</strong> {bootstrapResult.temporary_password || "n/a"}
+                    </div>
+                    <div>
+                      <strong>Password reset token:</strong> {bootstrapResult.password_reset_token || "n/a"}
                     </div>
                     <div>
                       <strong>Activation URL:</strong>{" "}
-                      <a href={bootstrapResult.invite_url} target="_blank" rel="noreferrer">
-                        {bootstrapResult.invite_url}
-                      </a>
+                      {bootstrapResult.invite_url ? (
+                        <a href={bootstrapResult.invite_url} target="_blank" rel="noreferrer">
+                          {bootstrapResult.invite_url}
+                        </a>
+                      ) : (
+                        "n/a"
+                      )}
                     </div>
                   </div>
                 ) : null}

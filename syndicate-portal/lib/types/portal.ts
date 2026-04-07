@@ -63,7 +63,7 @@ export const SessionMeSchema = z.object({
 
 export const AdminTenantBootstrapRequestSchema = z.object({
   tenant_name: z.string().min(2),
-  tenant_slug: z.string().min(2),
+  tenant_slug: z.string().min(2).optional(),
   owner_email: z.string().email(),
   owner_full_name: z.string().min(2)
 });
@@ -71,9 +71,10 @@ export const AdminTenantBootstrapRequestSchema = z.object({
 export const AdminTenantBootstrapResponseSchema = z.object({
   tenant_id: z.string(),
   owner_email: z.string().email(),
-  temporary_password: z.string(),
-  invite_token: z.string(),
-  invite_url: z.string()
+  temporary_password: z.string().nullable().optional(),
+  password_reset_token: z.string().nullable().optional(),
+  invite_token: z.string().nullable().optional(),
+  invite_url: z.string().nullable().optional()
 });
 
 export const InviteActivationRequestSchema = z.object({
