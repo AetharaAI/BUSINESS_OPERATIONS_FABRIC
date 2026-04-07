@@ -4,17 +4,26 @@ import { SESSION_COOKIE_NAME } from "@/lib/constants";
 
 const protectedRoutes = ["/dashboard", "/business-profile", "/agent-mode", "/audit-log", "/billing", "/internal-admin"];
 
+const buildRedirectUrl = (request: NextRequest, pathname: string): URL => {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost || request.headers.get("host") || request.nextUrl.host;
+  const protocol = forwardedProto || request.nextUrl.protocol.replace(":", "") || "https";
+
+  return new URL(pathname, `${protocol}://${host}`);
+};
+
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
 
   if (isProtected && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(buildRedirectUrl(request, "/login"));
   }
 
   if (pathname === "/login" && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(buildRedirectUrl(request, "/dashboard"));
   }
 
   return NextResponse.next();
