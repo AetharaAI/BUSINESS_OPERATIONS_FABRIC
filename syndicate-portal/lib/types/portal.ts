@@ -61,11 +61,26 @@ export const SessionMeSchema = z.object({
   tenant_name: z.string().optional()
 });
 
+export const PlanSchema = z.enum(["starter", "growth", "operator"]);
+export const AgreementStatusSchema = z.enum(["draft", "sent", "signed"]);
+export const DepositStatusSchema = z.enum(["pending", "paid"]);
+export const FinalSetupStatusSchema = z.enum(["pending", "paid", "not_required"]);
+export const MonthlyStatusSchema = z.enum(["inactive", "pending", "active"]);
+export const PortalInviteStatusSchema = z.enum(["not_sent", "sent", "accepted"]);
+
 export const AdminTenantBootstrapRequestSchema = z.object({
   tenant_name: z.string().min(2),
   tenant_slug: z.string().min(2).optional(),
   owner_email: z.string().email(),
-  owner_full_name: z.string().min(2)
+  owner_full_name: z.string().min(2),
+  selected_plan: PlanSchema.default("starter"),
+  agreement_status: AgreementStatusSchema.default("draft"),
+  deposit_status: DepositStatusSchema.default("pending"),
+  final_setup_status: FinalSetupStatusSchema.optional(),
+  monthly_status: MonthlyStatusSchema.default("inactive"),
+  portal_invite_status: PortalInviteStatusSchema.default("not_sent"),
+  docusign_envelope_id: z.string().trim().min(1).nullable().optional(),
+  onboarding_notes: z.string().trim().min(1).nullable().optional()
 });
 
 export const AdminTenantBootstrapResponseSchema = z.object({
@@ -101,13 +116,6 @@ export const BillingPortalLinkResponseSchema = z.object({
   provider: z.string(),
   manage_url: z.string().nullable()
 });
-
-export const PlanSchema = z.enum(["starter", "growth", "operator"]);
-export const AgreementStatusSchema = z.enum(["draft", "sent", "signed"]);
-export const DepositStatusSchema = z.enum(["pending", "paid"]);
-export const FinalSetupStatusSchema = z.enum(["pending", "paid", "not_required"]);
-export const MonthlyStatusSchema = z.enum(["inactive", "pending", "active"]);
-export const PortalInviteStatusSchema = z.enum(["not_sent", "sent", "accepted"]);
 
 export const TenantBillingStateSchema = z.object({
   tenant_id: z.string(),

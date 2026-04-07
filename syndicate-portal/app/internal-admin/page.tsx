@@ -18,6 +18,14 @@ export default function InternalAdminPage() {
   const [tenantName, setTenantName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
+  const [createPlan, setCreatePlan] = useState<Plan>("starter");
+  const [createAgreementStatus, setCreateAgreementStatus] = useState<TenantBillingState["agreement_status"]>("draft");
+  const [createDepositStatus, setCreateDepositStatus] = useState<TenantBillingState["deposit_status"]>("pending");
+  const [createFinalSetupStatus, setCreateFinalSetupStatus] = useState<TenantBillingState["final_setup_status"]>("pending");
+  const [createMonthlyStatus, setCreateMonthlyStatus] = useState<TenantBillingState["monthly_status"]>("inactive");
+  const [createInviteStatus, setCreateInviteStatus] = useState<TenantBillingState["portal_invite_status"]>("not_sent");
+  const [createDocuSignEnvelopeId, setCreateDocuSignEnvelopeId] = useState("");
+  const [createOnboardingNotes, setCreateOnboardingNotes] = useState("");
   const [existingTenantId, setExistingTenantId] = useState("");
   const [existingTenantName, setExistingTenantName] = useState("");
   const [selectedTenantId, setSelectedTenantId] = useState("");
@@ -55,12 +63,20 @@ export default function InternalAdminPage() {
       const payload = await portalApi.adminBootstrapTenant({
         tenant_name: tenantName.trim(),
         owner_email: ownerEmail.trim().toLowerCase(),
-        owner_full_name: ownerName.trim()
+        owner_full_name: ownerName.trim(),
+        selected_plan: createPlan,
+        agreement_status: createAgreementStatus,
+        deposit_status: createDepositStatus,
+        final_setup_status: createFinalSetupStatus,
+        monthly_status: createMonthlyStatus,
+        portal_invite_status: createInviteStatus,
+        docusign_envelope_id: createDocuSignEnvelopeId.trim() || null,
+        onboarding_notes: createOnboardingNotes.trim() || null
       });
       setBootstrapResult(payload);
       setSelectedTenantId(payload.tenant_id);
       await statesResource.reload();
-      setInfo("Tenant created and onboarding state initialized.");
+      setInfo("Tenant, owner, and onboarding/billing state created in one step.");
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to bootstrap tenant");
     } finally {
@@ -147,6 +163,92 @@ export default function InternalAdminPage() {
                       value={ownerEmail}
                       onChange={(e) => setOwnerEmail(e.target.value)}
                       required
+                    />
+                  </div>
+                  <div className="grid-2">
+                    <div className="form-row">
+                      <label className="label">Plan</label>
+                      <select className="select" value={createPlan} onChange={(e) => setCreatePlan(e.target.value as Plan)}>
+                        <option value="starter">starter</option>
+                        <option value="growth">growth</option>
+                        <option value="operator">operator</option>
+                      </select>
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Agreement status</label>
+                      <select
+                        className="select"
+                        value={createAgreementStatus}
+                        onChange={(e) => setCreateAgreementStatus(e.target.value as TenantBillingState["agreement_status"])}
+                      >
+                        <option value="draft">draft</option>
+                        <option value="sent">sent</option>
+                        <option value="signed">signed</option>
+                      </select>
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Deposit status</label>
+                      <select
+                        className="select"
+                        value={createDepositStatus}
+                        onChange={(e) => setCreateDepositStatus(e.target.value as TenantBillingState["deposit_status"])}
+                      >
+                        <option value="pending">pending</option>
+                        <option value="paid">paid</option>
+                      </select>
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Final setup status</label>
+                      <select
+                        className="select"
+                        value={createFinalSetupStatus}
+                        onChange={(e) => setCreateFinalSetupStatus(e.target.value as TenantBillingState["final_setup_status"])}
+                      >
+                        <option value="pending">pending</option>
+                        <option value="paid">paid</option>
+                        <option value="not_required">not_required</option>
+                      </select>
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Monthly status</label>
+                      <select
+                        className="select"
+                        value={createMonthlyStatus}
+                        onChange={(e) => setCreateMonthlyStatus(e.target.value as TenantBillingState["monthly_status"])}
+                      >
+                        <option value="inactive">inactive</option>
+                        <option value="pending">pending</option>
+                        <option value="active">active</option>
+                      </select>
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Portal invite status</label>
+                      <select
+                        className="select"
+                        value={createInviteStatus}
+                        onChange={(e) => setCreateInviteStatus(e.target.value as TenantBillingState["portal_invite_status"])}
+                      >
+                        <option value="not_sent">not_sent</option>
+                        <option value="sent">sent</option>
+                        <option value="accepted">accepted</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <label className="label">DocuSign envelope ID (optional)</label>
+                    <input
+                      className="input"
+                      value={createDocuSignEnvelopeId}
+                      onChange={(e) => setCreateDocuSignEnvelopeId(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label className="label">Onboarding notes (optional)</label>
+                    <textarea
+                      className="textarea"
+                      rows={3}
+                      value={createOnboardingNotes}
+                      onChange={(e) => setCreateOnboardingNotes(e.target.value)}
                     />
                   </div>
                   <div>

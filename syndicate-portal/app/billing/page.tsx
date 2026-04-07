@@ -49,6 +49,28 @@ export default function BillingPage() {
                     <div className="value">{data.monthly_status}</div>
                   </div>
                 </div>
+                <div className="grid-2">
+                  <div className="stack">
+                    <div className="label">Deposit payment action</div>
+                    {data.payment_link_deposit ? (
+                      <a className="btn btn-secondary" href={data.payment_link_deposit} target="_blank" rel="noreferrer">
+                        Pay Deposit
+                      </a>
+                    ) : (
+                      <div className="muted">No deposit link configured.</div>
+                    )}
+                  </div>
+                  <div className="stack">
+                    <div className="label">Final setup payment action</div>
+                    {data.payment_link_final_setup ? (
+                      <a className="btn btn-secondary" href={data.payment_link_final_setup} target="_blank" rel="noreferrer">
+                        Pay Final Setup
+                      </a>
+                    ) : (
+                      <div className="muted">No final setup link configured.</div>
+                    )}
+                  </div>
+                </div>
               </section>
 
               <section className="panel stack">

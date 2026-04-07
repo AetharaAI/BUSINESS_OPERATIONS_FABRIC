@@ -224,10 +224,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Tenant bootstrap did not return a result" }, { status: 500 });
     }
 
-    billingStateStore.ensureForTenant({
+    billingStateStore.createOrReplaceForTenant({
       tenant_id: result.tenantId,
       tenant_name: body.tenant_name,
-      selected_plan: "starter"
+      selected_plan: body.selected_plan
+    });
+
+    const seededState = billingStateStore.update({
+      tenant_id: result.tenantId,
+      tenant_name: body.tenant_name,
+      selected_plan: body.selected_plan,
+      agreement_status: body.agreement_status,
+      deposit_status: body.deposit_status,
+      final_setup_status: body.final_setup_status,
+      monthly_status: body.monthly_status,
+      portal_invite_status: body.portal_invite_status,
+      docusign_envelope_id: body.docusign_envelope_id ?? null,
+      onboarding_notes: body.onboarding_notes ?? null
     });
 
     return NextResponse.json({
@@ -236,7 +249,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       temporary_password: result.temporaryPassword,
       password_reset_token: result.passwordResetToken,
       invite_token: result.inviteToken,
-      invite_url: result.inviteUrl
+      invite_url: result.inviteUrl,
+      onboarding_state: seededState
     });
   } catch (error) {
     return safeRouteError(error);
