@@ -4,25 +4,24 @@ import { FormEvent, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PortalApiError, portalApi } from "@/lib/client/api";
 
-export default function ActivateClient() {
+export default function ResetPasswordClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token") || "";
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [activationUnavailable, setActivationUnavailable] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setError(null);
     setSuccess(null);
-    setActivationUnavailable(false);
 
     if (!token) {
-      setError("Missing activation token.");
+      setError("This reset link is missing a token. Request a new reset link.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -32,15 +31,14 @@ export default function ActivateClient() {
 
     setIsSubmitting(true);
     try {
-      await portalApi.activateInvite({ token, new_password: newPassword });
-      setSuccess("Password set successfully. You can now sign in.");
+      await portalApi.resetPassword({ token, new_password: newPassword });
+      setSuccess("Password reset successful. You can now sign in.");
       setTimeout(() => router.push("/login"), 1200);
     } catch (err) {
-      if (err instanceof PortalApiError && (err.status === 501 || err.status === 404)) {
-        setActivationUnavailable(true);
-        setError("Password setup is temporarily unavailable in this environment.");
+      if (err instanceof PortalApiError && err.status === 400) {
+        setError("This reset link is invalid or expired. Request a new link.");
       } else {
-        setError(err instanceof Error ? err.message : "Unable to activate invite");
+        setError(err instanceof Error ? err.message : "Unable to reset password");
       }
     } finally {
       setIsSubmitting(false);
@@ -51,22 +49,25 @@ export default function ActivateClient() {
     <main className="content">
       <div className="container" style={{ maxWidth: "520px" }}>
         <section className="panel stack">
-          <h1>Activate Account</h1>
-          <p className="muted">Set your password to complete first login.</p>
-          {activationUnavailable ? (
+          <h1>Reset Password</h1>
+          <p className="muted">Create a new password using your reset link.</p>
+
+          {!token ? (
+            <div className="alert alert-warning">
+              Reset token missing. <a href="/forgot-password">Request a new reset link</a>.
+            </div>
+          ) : null}
+
+          {error ? <div className="alert alert-error">{error}</div> : null}
+          {success ? (
             <div className="alert alert-warning stack">
+              <div>{success}</div>
               <div>
-                Password activation is not available yet. Your account invite is still valid, but password setup must be completed
-                by an admin right now.
-              </div>
-              <div>
-                Please contact Syndicate support/admin to set your initial password, then return to{" "}
-                <a href="/login">/login</a>.
+                Continue to <a href="/login">login</a>, or <a href="/forgot-password">request a new reset link</a>.
               </div>
             </div>
           ) : null}
-          {error ? <div className="alert alert-error">{error}</div> : null}
-          {success ? <div className="alert alert-warning">{success}</div> : null}
+
           <form className="stack" onSubmit={submit}>
             <div className="form-row">
               <label htmlFor="new-password" className="label">
@@ -80,7 +81,7 @@ export default function ActivateClient() {
                 onChange={(event) => setNewPassword(event.target.value)}
                 minLength={8}
                 required
-                disabled={activationUnavailable || isSubmitting}
+                disabled={!token || isSubmitting}
               />
             </div>
             <div className="form-row">
@@ -95,13 +96,17 @@ export default function ActivateClient() {
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 minLength={8}
                 required
-                disabled={activationUnavailable || isSubmitting}
+                disabled={!token || isSubmitting}
               />
             </div>
-            <button className="btn btn-primary" type="submit" disabled={activationUnavailable || isSubmitting}>
-              {isSubmitting ? "Activating..." : "Set Password"}
+            <button className="btn btn-primary" type="submit" disabled={!token || isSubmitting}>
+              {isSubmitting ? "Resetting..." : "Reset Password"}
             </button>
           </form>
+
+          <p className="muted">
+            Need a fresh link? <a href="/forgot-password">Request password reset</a>
+          </p>
         </section>
       </div>
     </main>

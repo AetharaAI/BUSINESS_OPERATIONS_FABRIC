@@ -11,6 +11,7 @@ const links = [
   { href: "/agent-mode", label: "Agent Mode" },
   { href: "/audit-log", label: "Audit Log" },
   { href: "/billing", label: "Billing" },
+  { href: "/change-password", label: "Change Password" },
   { href: "/internal-admin", label: "Internal Admin" }
 ];
 

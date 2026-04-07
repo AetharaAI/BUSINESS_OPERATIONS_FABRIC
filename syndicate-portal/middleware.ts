@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/constants";
 
-const protectedRoutes = ["/dashboard", "/business-profile", "/agent-mode", "/audit-log", "/billing", "/internal-admin"];
+const protectedRoutes = [
+  "/dashboard",
+  "/business-profile",
+  "/agent-mode",
+  "/audit-log",
+  "/billing",
+  "/change-password",
+  "/internal-admin"
+];
 
 const buildRedirectUrl = (request: NextRequest, pathname: string): URL => {
   const forwardedProto = request.headers.get("x-forwarded-proto");
@@ -36,6 +44,7 @@ export const config = {
     "/agent-mode/:path*",
     "/audit-log/:path*",
     "/billing/:path*",
+    "/change-password/:path*",
     "/internal-admin/:path*",
     "/login"
   ]

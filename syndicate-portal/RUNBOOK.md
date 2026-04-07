@@ -36,6 +36,9 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
 2. BFF proxies only:
    - `POST /api/v1/auth/login`
    - `GET /api/v1/auth/me`
+   - `POST /api/v1/auth/forgot-password`
+   - `POST /api/v1/auth/reset-password`
+   - `POST /api/v1/auth/change-password`
    - `GET /api/v1/portal/dashboard`
    - `GET /api/v1/portal/business-profile`
    - `GET /api/v1/portal/agent-mode`
@@ -43,6 +46,18 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
    - `GET /api/v1/portal/audit-log`
 3. Admin/bootstrap/webhook endpoints are not exposed in browser code.
 4. Session token is stored in HTTP-only cookie (`syndicate_portal_session`).
+
+## Password Flows
+1. Public forgot-password page: `/forgot-password`
+   - submits email to `POST /api/session/forgot-password` (BFF -> VoiceOps `POST /api/v1/auth/forgot-password`)
+   - UI always shows neutral success text and never reveals account existence
+2. Public reset page: `/reset-password?token=...`
+   - submits token + new password to `POST /api/session/reset-password` (BFF -> VoiceOps `POST /api/v1/auth/reset-password`)
+3. Authenticated change-password page: `/change-password`
+   - submits current/new password to `POST /api/session/change-password` (BFF -> VoiceOps `POST /api/v1/auth/change-password`)
+4. Optional server-only header support for forgot-password:
+   - if `VOICEOPS_PLATFORM_ADMIN_KEY` is set, BFF includes `x-platform-admin-key` server-side
+   - this key is never exposed to the browser
 
 ## Internal Admin + Onboarding
 1. Internal admin route: `/internal-admin` (requires logged-in admin role and optional email allowlist).

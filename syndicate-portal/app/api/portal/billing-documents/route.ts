@@ -4,6 +4,7 @@ import { readSessionToken } from "@/lib/server/session";
 import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { SessionMeSchema } from "@/lib/types/portal";
 import { billingStateStore } from "@/lib/server/billing-state-store";
+import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -15,7 +16,7 @@ export async function GET(): Promise<NextResponse> {
       path: "/api/v1/auth/me",
       token
     });
-    const me = SessionMeSchema.parse(mePayload);
+    const me = SessionMeSchema.parse(unwrapVoiceOpsPayload(mePayload));
     if (!me.tenant_id) {
       return NextResponse.json({ error: "No tenant context" }, { status: 400 });
     }

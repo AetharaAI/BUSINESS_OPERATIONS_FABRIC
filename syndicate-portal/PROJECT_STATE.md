@@ -41,7 +41,7 @@
 - No verified deployment record in this repo yet.
 - Business profile write (`PUT /api/v1/portal/business-profile`) not implemented in UI/BFF.
 - Password activation requires `VOICEOPS_PASSWORD_RESET_PATH` to match an active VoiceOps endpoint.
-- Billing status updates are currently manual state updates (no Stripe webhook ingestion yet).
+- Billing status can be updated manually and via Stripe webhook ingestion (`/api/webhooks/stripe`) when webhook/env are configured correctly.
 - Role mapping is basic (`owner`/`admin` editable for agent mode; others read-only).
 - Additional portal modules deferred:
   - team
@@ -69,4 +69,4 @@
 
 ## Next Steps
 1. Validate full DocuSign -> Stripe -> state update run against one real test tenant.
-2. Add Stripe webhook ingestion to automate deposit/final/monthly status transitions.
+2. Add DocuSign webhook or API polling to auto-update agreement status and signed document links.

@@ -4,6 +4,10 @@ import {
   AdminTenantBootstrapResponseSchema,
   BillingPortalLinkResponse,
   BillingPortalLinkResponseSchema,
+  ChangePasswordRequest,
+  ChangePasswordRequestSchema,
+  ForgotPasswordRequest,
+  ForgotPasswordRequestSchema,
   InviteActivationRequest,
   TenantBillingState,
   TenantBillingStateListResponseSchema,
@@ -18,6 +22,8 @@ import {
   PortalBusinessProfileSchema,
   PortalDashboard,
   PortalDashboardSchema,
+  ResetPasswordRequest,
+  ResetPasswordRequestSchema,
   SessionMe,
   SessionMeSchema
 } from "@/lib/types/portal";
@@ -66,6 +72,28 @@ const jsonRequest = async <T>(
   }
 
   return parse(payload);
+};
+
+const mapPasswordApiError = (error: unknown, operation: "reset" | "change"): never => {
+  if (!(error instanceof PortalApiError)) {
+    throw error;
+  }
+
+  if (error.status === 400) {
+    throw new PortalApiError(
+      operation === "reset"
+        ? "Invalid or expired reset token. Request a new reset link and try again."
+        : "Password update failed. Check your input and use a new password.",
+      error.status,
+      error.details
+    );
+  }
+
+  if (operation === "change" && error.status === 401) {
+    throw new PortalApiError("Current password is incorrect.", error.status, error.details);
+  }
+
+  throw error;
 };
 
 export const portalApi = {
@@ -134,6 +162,28 @@ export const portalApi = {
       }
       return { ok: true };
     }),
+
+  forgotPassword: async (input: ForgotPasswordRequest): Promise<{ ok: true }> => {
+    const parsedInput = ForgotPasswordRequestSchema.parse(input);
+    await jsonRequest("/api/session/forgot-password", { method: "POST", body: JSON.stringify(parsedInput) }, () => ({ ok: true }));
+    return { ok: true };
+  },
+
+  resetPassword: async (input: ResetPasswordRequest): Promise<{ ok: true }> => {
+    const parsedInput = ResetPasswordRequestSchema.parse(input);
+    await jsonRequest("/api/session/reset-password", { method: "POST", body: JSON.stringify(parsedInput) }, () => ({ ok: true })).catch(
+      (error) => mapPasswordApiError(error, "reset")
+    );
+    return { ok: true };
+  },
+
+  changePassword: async (input: ChangePasswordRequest): Promise<{ ok: true }> => {
+    const parsedInput = ChangePasswordRequestSchema.parse(input);
+    await jsonRequest("/api/session/change-password", { method: "POST", body: JSON.stringify(parsedInput) }, () => ({ ok: true })).catch(
+      (error) => mapPasswordApiError(error, "change")
+    );
+    return { ok: true };
+  },
 
   billingLink: (): Promise<BillingPortalLinkResponse> =>
     jsonRequest("/api/admin/billing-link", { method: "GET" }, (payload) => BillingPortalLinkResponseSchema.parse(payload)),

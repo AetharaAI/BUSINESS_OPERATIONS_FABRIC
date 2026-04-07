@@ -81,6 +81,20 @@ export const InviteActivationRequestSchema = z.object({
   new_password: z.string().min(8)
 });
 
+export const ForgotPasswordRequestSchema = z.object({
+  email: z.string().email()
+});
+
+export const ResetPasswordRequestSchema = z.object({
+  token: z.string().min(10),
+  new_password: z.string().min(8)
+});
+
+export const ChangePasswordRequestSchema = z.object({
+  current_password: z.string().min(1),
+  new_password: z.string().min(8)
+});
+
 export const BillingPortalLinkResponseSchema = z.object({
   status: z.enum(["not_configured", "configured"]),
   provider: z.string(),
@@ -152,6 +166,9 @@ export type SessionMe = z.infer<typeof SessionMeSchema>;
 export type AdminTenantBootstrapRequest = z.infer<typeof AdminTenantBootstrapRequestSchema>;
 export type AdminTenantBootstrapResponse = z.infer<typeof AdminTenantBootstrapResponseSchema>;
 export type InviteActivationRequest = z.infer<typeof InviteActivationRequestSchema>;
+export type ForgotPasswordRequest = z.infer<typeof ForgotPasswordRequestSchema>;
+export type ResetPasswordRequest = z.infer<typeof ResetPasswordRequestSchema>;
+export type ChangePasswordRequest = z.infer<typeof ChangePasswordRequestSchema>;
 export type BillingPortalLinkResponse = z.infer<typeof BillingPortalLinkResponseSchema>;
 export type Plan = z.infer<typeof PlanSchema>;
 export type TenantBillingState = z.infer<typeof TenantBillingStateSchema>;
