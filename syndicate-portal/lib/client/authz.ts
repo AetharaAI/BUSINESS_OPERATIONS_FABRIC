@@ -1,4 +1,5 @@
 import { SessionMe } from "@/lib/types/portal";
+import { isInternalAdmin as resolveInternalAdmin } from "@/lib/shared/internal-admin";
 
 export const canEditAgentMode = (me: SessionMe | null): boolean => {
   if (!me?.role) {
@@ -9,7 +10,7 @@ export const canEditAgentMode = (me: SessionMe | null): boolean => {
   return role === "owner" || role === "admin";
 };
 
-export const isInternalAdmin = (me: SessionMe | null): boolean => me?.is_internal_admin === true;
+export const isInternalAdmin = (me: SessionMe | null): boolean => resolveInternalAdmin(me);
 
 export const canViewInternalAdmin = (me: SessionMe | null): boolean => isInternalAdmin(me);
 

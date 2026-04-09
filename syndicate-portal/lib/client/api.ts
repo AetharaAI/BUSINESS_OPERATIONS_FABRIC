@@ -186,7 +186,7 @@ export const portalApi = {
   },
 
   billingLink: (): Promise<BillingPortalLinkResponse> =>
-    jsonRequest("/api/admin/billing-link", { method: "GET" }, (payload) => BillingPortalLinkResponseSchema.parse(payload)),
+    jsonRequest("/api/portal/billing-link", { method: "GET" }, (payload) => BillingPortalLinkResponseSchema.parse(payload)),
 
   listOnboardingStates: (): Promise<TenantBillingState[]> =>
     jsonRequest("/api/admin/onboarding-state", { method: "GET" }, (payload) => TenantBillingStateListResponseSchema.parse(payload).items),

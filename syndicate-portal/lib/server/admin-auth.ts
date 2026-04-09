@@ -1,26 +1,8 @@
 import { readSessionToken } from "@/lib/server/session";
 import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { SessionMe, SessionMeSchema } from "@/lib/types/portal";
-import { serverEnv } from "@/lib/server/env";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
-
-const parseAllowlist = (raw: string): Set<string> =>
-  new Set(
-    raw
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean)
-  );
-
-export const isInternalAdmin = (me: SessionMe): boolean => {
-  const email = (me.email || "").toLowerCase();
-  const allowlist = parseAllowlist(serverEnv.portalAdminEmailAllowlist);
-
-  // Single authority: email allowlist controls internal admin access.
-  // This keeps behavior deterministic for portal admin controls.
-  if (allowlist.size === 0) return false;
-  return allowlist.has(email);
-};
+import { isInternalAdmin } from "@/lib/shared/internal-admin";
 
 export const requireAdminSession = async (): Promise<{ token: string; me: SessionMe }> => {
   const token = await readSessionToken();
@@ -34,6 +16,15 @@ export const requireAdminSession = async (): Promise<{ token: string; me: Sessio
     token
   });
   const parsedMe = SessionMeSchema.parse(unwrapVoiceOpsPayload(mePayload));
+
+  if (!parsedMe.email || typeof parsedMe.email !== "string") {
+    console.error("[portal-authz] malformed session payload: missing email", {
+      email: parsedMe.email ?? null,
+      role: parsedMe.role ?? null
+    });
+    throw new Error("Forbidden");
+  }
+
   const allowed = isInternalAdmin(parsedMe);
 
   if (!allowed) {

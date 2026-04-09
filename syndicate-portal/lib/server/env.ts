@@ -12,7 +12,6 @@ export const serverEnv = {
   cookieSecure: parseBool(process.env.PORTAL_COOKIE_SECURE, process.env.NODE_ENV === "production"),
   voiceOpsPlatformAdminKey: process.env.VOICEOPS_PLATFORM_ADMIN_KEY || "",
   portalInviteTokenSecret: process.env.PORTAL_INVITE_TOKEN_SECRET || "",
-  portalAdminEmailAllowlist: process.env.PORTAL_ADMIN_EMAIL_ALLOWLIST || "",
   voiceOpsPasswordResetPath: process.env.VOICEOPS_PASSWORD_RESET_PATH || "",
   portalBillingProvider: process.env.PORTAL_BILLING_PROVIDER || "unconfigured",
   portalBillingManageUrlTemplate: process.env.PORTAL_BILLING_MANAGE_URL_TEMPLATE || "",

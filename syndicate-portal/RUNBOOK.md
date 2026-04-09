@@ -60,7 +60,7 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
    - this key is never exposed to the browser
 
 ## Internal Admin + Onboarding
-1. Internal admin route: `/internal-admin` (requires logged-in admin role and optional email allowlist).
+1. Internal admin route: `/internal-admin` (admin email only: `operations@aetherpro.us`).
 2. Tenant bootstrap API: `POST /api/admin/tenant-bootstrap`
    - creates tenant via VoiceOps `POST /api/v1/tenants`
    - bootstraps owner via VoiceOps `POST /api/v1/auth/bootstrap`
@@ -73,9 +73,6 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
    - `VOICEOPS_PLATFORM_ADMIN_KEY`
    - `PORTAL_INVITE_TOKEN_SECRET`
    - `VOICEOPS_PASSWORD_RESET_PATH`
-6. Optional hardening env:
-   - `PORTAL_ADMIN_EMAIL_ALLOWLIST` (comma-separated)
-
 ## Billing Scaffold
 1. Billing route: `/billing`
 2. Internal onboarding state API: `GET|POST|PUT /api/admin/onboarding-state`

@@ -4,7 +4,7 @@ import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { safeRouteError, unauthorized } from "@/app/api/_lib/route-utils";
 import { SessionMeSchema } from "@/lib/types/portal";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
-import { isInternalAdmin } from "@/lib/server/admin-auth";
+import { isInternalAdmin } from "@/lib/shared/internal-admin";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -23,7 +23,10 @@ export async function GET(): Promise<NextResponse> {
     const unwrapped = unwrapVoiceOpsPayload(payload);
     const parsed = SessionMeSchema.safeParse(unwrapped);
     if (!parsed.success) {
-      return NextResponse.json(unwrapped);
+      console.error("[portal-authz] malformed session payload", {
+        details: parsed.error.flatten()
+      });
+      return NextResponse.json({ error: "Invalid session payload" }, { status: 502 });
     }
 
     const adminAccess = isInternalAdmin(parsed.data);
