@@ -4,7 +4,7 @@ import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { safeRouteError, unauthorized } from "@/app/api/_lib/route-utils";
 import { SessionMeSchema } from "@/lib/types/portal";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
-import { isInternalAdminUser } from "@/lib/server/admin-auth";
+import { isInternalAdmin } from "@/lib/server/admin-auth";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -26,9 +26,16 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json(unwrapped);
     }
 
+    const adminAccess = isInternalAdmin(parsed.data);
+    console.info("[portal-authz] session resolved", {
+      email: parsed.data.email ?? null,
+      role: parsed.data.role ?? null,
+      isInternalAdmin: adminAccess
+    });
+
     return NextResponse.json({
       ...parsed.data,
-      is_internal_admin: isInternalAdminUser(parsed.data)
+      is_internal_admin: adminAccess
     });
   } catch (error) {
     return safeRouteError(error);

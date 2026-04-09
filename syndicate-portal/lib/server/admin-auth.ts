@@ -4,8 +4,6 @@ import { SessionMe, SessionMeSchema } from "@/lib/types/portal";
 import { serverEnv } from "@/lib/server/env";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 
-const INTERNAL_ADMIN_ROLES = new Set(["platform_admin", "admin"]);
-
 const parseAllowlist = (raw: string): Set<string> =>
   new Set(
     raw
@@ -14,29 +12,13 @@ const parseAllowlist = (raw: string): Set<string> =>
       .filter(Boolean)
   );
 
-export const isInternalAdminUser = (me: SessionMe): boolean => {
-  const role = (me.role || "").toLowerCase();
+export const isInternalAdmin = (me: SessionMe): boolean => {
   const email = (me.email || "").toLowerCase();
   const allowlist = parseAllowlist(serverEnv.portalAdminEmailAllowlist);
 
-  // If an internal operator email is explicitly allowlisted, treat it as internal admin.
-  if (allowlist.size > 0 && allowlist.has(email)) {
-    return true;
-  }
-
-  if (!INTERNAL_ADMIN_ROLES.has(role)) {
-    return false;
-  }
-
-  // Default behavior: role-based admin access. This avoids accidental lockout.
-  if (!serverEnv.portalEnforceAdminAllowlist) {
-    return true;
-  }
-
-  // Strict mode: if enabled, internal admin role must also be in allowlist (when provided).
-  if (allowlist.size === 0) {
-    return true;
-  }
+  // Single authority: email allowlist controls internal admin access.
+  // This keeps behavior deterministic for portal admin controls.
+  if (allowlist.size === 0) return false;
   return allowlist.has(email);
 };
 
@@ -52,10 +34,22 @@ export const requireAdminSession = async (): Promise<{ token: string; me: Sessio
     token
   });
   const parsedMe = SessionMeSchema.parse(unwrapVoiceOpsPayload(mePayload));
+  const allowed = isInternalAdmin(parsedMe);
 
-  if (!isInternalAdminUser(parsedMe)) {
+  if (!allowed) {
+    console.info("[portal-authz] admin denied", {
+      email: parsedMe.email ?? null,
+      role: parsedMe.role ?? null,
+      isInternalAdmin: allowed
+    });
     throw new Error("Forbidden");
   }
+
+  console.info("[portal-authz] admin granted", {
+    email: parsedMe.email ?? null,
+    role: parsedMe.role ?? null,
+    isInternalAdmin: allowed
+  });
 
   return { token, me: parsedMe };
 };

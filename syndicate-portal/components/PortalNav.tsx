@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
-import { canViewAuditLog, canViewInternalAdmin } from "@/lib/client/authz";
+import { isInternalAdmin } from "@/lib/client/authz";
 
 const baseLinks = [
   { href: "/dashboard", label: "Dashboard" },
@@ -23,8 +23,8 @@ export const PortalNav = () => {
 
   const links = [
     ...baseLinks,
-    ...(canViewAuditLog(meState.data) ? [{ href: "/audit-log", label: "Audit Log" }] : []),
-    ...(canViewInternalAdmin(meState.data) ? [{ href: "/internal-admin", label: "Internal Admin" }] : [])
+    ...(isInternalAdmin(meState.data) ? [{ href: "/audit-log", label: "Audit Log" }] : []),
+    ...(isInternalAdmin(meState.data) ? [{ href: "/internal-admin", label: "Internal Admin" }] : [])
   ];
 
   const logout = async (): Promise<void> => {

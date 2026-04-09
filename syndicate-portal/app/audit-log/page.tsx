@@ -6,12 +6,12 @@ import { AuditLogTable } from "@/components/AuditLogTable";
 import { ErrorPanel, LoadingPanel } from "@/components/LoadStates";
 import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
-import { canViewAuditLog } from "@/lib/client/authz";
+import { isInternalAdmin } from "@/lib/client/authz";
 
 export default function AuditLogPage() {
   const meLoader = useCallback(() => portalApi.me(), []);
   const meState = useApiResource(meLoader);
-  const canAccess = canViewAuditLog(meState.data);
+  const canAccess = isInternalAdmin(meState.data);
   const loader = useCallback(
     () => (canAccess ? portalApi.auditLog({ limit: 50 }) : Promise.resolve({ items: [], next_cursor: null })),
     [canAccess]

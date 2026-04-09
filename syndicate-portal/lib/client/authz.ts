@@ -9,15 +9,8 @@ export const canEditAgentMode = (me: SessionMe | null): boolean => {
   return role === "owner" || role === "admin";
 };
 
-export const canViewInternalAdmin = (me: SessionMe | null): boolean => {
-  if (!me) {
-    return false;
-  }
-  if (me.is_internal_admin === true) {
-    return true;
-  }
-  const role = (me.role || "").toLowerCase();
-  return role === "admin" || role === "platform_admin";
-};
+export const isInternalAdmin = (me: SessionMe | null): boolean => me?.is_internal_admin === true;
 
-export const canViewAuditLog = (me: SessionMe | null): boolean => canViewInternalAdmin(me);
+export const canViewInternalAdmin = (me: SessionMe | null): boolean => isInternalAdmin(me);
+
+export const canViewAuditLog = (me: SessionMe | null): boolean => isInternalAdmin(me);
