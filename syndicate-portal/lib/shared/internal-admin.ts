@@ -1,11 +1,8 @@
 import { SessionMe } from "@/lib/types/portal";
 
-export const INTERNAL_ADMIN_EMAIL = "operations@aetherpro.us";
-
-export const isInternalAdmin = (me: Pick<SessionMe, "email"> | null | undefined): boolean => {
-  if (!me?.email || typeof me.email !== "string") {
+export const isInternalAdmin = (me: Pick<SessionMe, "role"> | null | undefined): boolean => {
+  if (!me?.role || typeof me.role !== "string") {
     return false;
   }
-  return me.email.trim().toLowerCase() === INTERNAL_ADMIN_EMAIL;
+  return me.role.trim().toLowerCase() === "admin";
 };
-

@@ -17,8 +17,8 @@ export const requireAdminSession = async (): Promise<{ token: string; me: Sessio
   });
   const parsedMe = SessionMeSchema.parse(unwrapVoiceOpsPayload(mePayload));
 
-  if (!parsedMe.email || typeof parsedMe.email !== "string") {
-    console.error("[portal-authz] malformed session payload: missing email", {
+  if (!parsedMe.email || typeof parsedMe.email !== "string" || !parsedMe.role || typeof parsedMe.role !== "string") {
+    console.error("[portal-authz] malformed session payload: missing email/role", {
       email: parsedMe.email ?? null,
       role: parsedMe.role ?? null
     });

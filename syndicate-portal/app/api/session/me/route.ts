@@ -29,6 +29,14 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json({ error: "Invalid session payload" }, { status: 502 });
     }
 
+    if (!parsed.data.email || typeof parsed.data.email !== "string" || !parsed.data.role || typeof parsed.data.role !== "string") {
+      console.error("[portal-authz] malformed session payload: missing email/role", {
+        email: parsed.data.email ?? null,
+        role: parsed.data.role ?? null
+      });
+      return NextResponse.json({ error: "Invalid session payload" }, { status: 502 });
+    }
+
     const adminAccess = isInternalAdmin(parsed.data);
     console.info("[portal-authz] session resolved", {
       email: parsed.data.email ?? null,
