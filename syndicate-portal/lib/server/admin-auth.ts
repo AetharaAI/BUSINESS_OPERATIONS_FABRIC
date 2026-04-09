@@ -16,22 +16,27 @@ const parseAllowlist = (raw: string): Set<string> =>
 
 export const isInternalAdminUser = (me: SessionMe): boolean => {
   const role = (me.role || "").toLowerCase();
+  const email = (me.email || "").toLowerCase();
+  const allowlist = parseAllowlist(serverEnv.portalAdminEmailAllowlist);
+
+  // If an internal operator email is explicitly allowlisted, treat it as internal admin.
+  if (allowlist.size > 0 && allowlist.has(email)) {
+    return true;
+  }
+
   if (!INTERNAL_ADMIN_ROLES.has(role)) {
     return false;
   }
 
-  // Default behavior: role-based admin access. This avoids accidental admin lockout
-  // when allowlist entries drift or contain typos.
+  // Default behavior: role-based admin access. This avoids accidental lockout.
   if (!serverEnv.portalEnforceAdminAllowlist) {
     return true;
   }
 
-  const allowlist = parseAllowlist(serverEnv.portalAdminEmailAllowlist);
+  // Strict mode: if enabled, internal admin role must also be in allowlist (when provided).
   if (allowlist.size === 0) {
     return true;
   }
-
-  const email = (me.email || "").toLowerCase();
   return allowlist.has(email);
 };
 
