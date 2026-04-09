@@ -10,7 +10,14 @@ export const canEditAgentMode = (me: SessionMe | null): boolean => {
 };
 
 export const canViewInternalAdmin = (me: SessionMe | null): boolean => {
-  return me?.is_internal_admin === true;
+  if (!me) {
+    return false;
+  }
+  if (me.is_internal_admin === true) {
+    return true;
+  }
+  const role = (me.role || "").toLowerCase();
+  return role === "admin" || role === "platform_admin";
 };
 
 export const canViewAuditLog = (me: SessionMe | null): boolean => canViewInternalAdmin(me);

@@ -20,6 +20,12 @@ export const isInternalAdminUser = (me: SessionMe): boolean => {
     return false;
   }
 
+  // Default behavior: role-based admin access. This avoids accidental admin lockout
+  // when allowlist entries drift or contain typos.
+  if (!serverEnv.portalEnforceAdminAllowlist) {
+    return true;
+  }
+
   const allowlist = parseAllowlist(serverEnv.portalAdminEmailAllowlist);
   if (allowlist.size === 0) {
     return true;
