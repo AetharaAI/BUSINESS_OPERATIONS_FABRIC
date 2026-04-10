@@ -17,10 +17,11 @@ export const requireAdminSession = async (): Promise<{ token: string; me: Sessio
   });
   const parsedMe = SessionMeSchema.parse(unwrapVoiceOpsPayload(mePayload));
 
-  if (!parsedMe.email || typeof parsedMe.email !== "string" || !parsedMe.role || typeof parsedMe.role !== "string") {
-    console.error("[portal-authz] malformed session payload: missing email/role", {
+  if (!parsedMe.email || typeof parsedMe.email !== "string" || typeof parsedMe.is_platform_admin !== "boolean") {
+    console.error("[portal-authz] malformed session payload: missing email/is_platform_admin", {
       email: parsedMe.email ?? null,
-      role: parsedMe.role ?? null
+      role: parsedMe.role ?? null,
+      is_platform_admin: parsedMe.is_platform_admin ?? null
     });
     throw new Error("Forbidden");
   }
@@ -31,6 +32,7 @@ export const requireAdminSession = async (): Promise<{ token: string; me: Sessio
     console.info("[portal-authz] admin denied", {
       email: parsedMe.email ?? null,
       role: parsedMe.role ?? null,
+      is_platform_admin: parsedMe.is_platform_admin,
       isInternalAdmin: allowed
     });
     throw new Error("Forbidden");
@@ -39,6 +41,7 @@ export const requireAdminSession = async (): Promise<{ token: string; me: Sessio
   console.info("[portal-authz] admin granted", {
     email: parsedMe.email ?? null,
     role: parsedMe.role ?? null,
+    is_platform_admin: parsedMe.is_platform_admin,
     isInternalAdmin: allowed
   });
 

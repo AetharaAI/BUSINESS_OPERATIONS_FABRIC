@@ -7,7 +7,7 @@ export const canEditAgentMode = (me: SessionMe | null): boolean => {
   }
 
   const role = me.role.toLowerCase();
-  return role === "owner" || role === "admin";
+  return role === "owner" || resolveInternalAdmin(me);
 };
 
 export const isInternalAdmin = (me: SessionMe | null): boolean => resolveInternalAdmin(me);
