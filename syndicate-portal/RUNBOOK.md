@@ -60,7 +60,7 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
    - this key is never exposed to the browser
 
 ## Internal Admin + Onboarding
-1. Internal admin route: `/internal-admin` (authenticated session role must be `admin`).
+1. Internal admin route: `/internal-admin` (authenticated session must resolve internal-admin access from VoiceOps auth payload: `role=admin` or `is_platform_admin=true`).
 2. Tenant bootstrap API: `POST /api/admin/tenant-bootstrap`
    - creates tenant via VoiceOps `POST /api/v1/tenants`
    - bootstraps owner via VoiceOps `POST /api/v1/auth/bootstrap`

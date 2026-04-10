@@ -1,5 +1,12 @@
 # CHANGELOG.md
 
+## 2026-04-10
+
+### Access Control
+- Fixed internal admin RBAC regression so portal admin surfaces resolve from VoiceOps session role/flag instead of requiring only `is_platform_admin`.
+- Restored `/internal-admin` and audit-log visibility for authenticated admin sessions while keeping non-admin tenant users out.
+- Added authz coverage for admin-role and platform-admin session combinations.
+
 ## 2026-04-06
 
 ### Application

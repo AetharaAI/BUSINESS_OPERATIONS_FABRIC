@@ -24,8 +24,8 @@
   - DNS/reverse proxy cutover status
 
 ## Deploy Reality
-- Local build verification on 2026-04-06:
-  - `npm run test` passed (8 tests)
+- Local build verification on 2026-04-10:
+  - `npm run test` passed (19 tests)
   - `npm run build` passed
 - Runtime artifact identifiers: not tracked in this repo yet.
 
@@ -43,6 +43,7 @@
 - Password activation requires `VOICEOPS_PASSWORD_RESET_PATH` to match an active VoiceOps endpoint.
 - Billing status can be updated manually and via Stripe webhook ingestion (`/api/webhooks/stripe`) when webhook/env are configured correctly.
 - Role mapping is basic (`owner`/`admin` editable for agent mode; others read-only).
+- Live VoiceOps auth payload shape is still externally owned, so portal RBAC depends on `/api/v1/auth/me` continuing to provide either `role` or `is_platform_admin`.
 - Additional portal modules deferred:
   - team
   - summaries

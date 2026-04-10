@@ -25,7 +25,8 @@
   - business profile (view)
   - agent mode read/update with enforcement-pending warning support
   - audit log table
-- Verified locally on 2026-04-06:
+- internal admin RBAC now resolves from VoiceOps session role/flag (`role=admin` or `is_platform_admin=true`)
+- Verified locally on 2026-04-10:
   - `npm run test` passed
   - `npm run build` passed
 - Live deployment state is not verifiable from this repo alone and is currently unknown.
