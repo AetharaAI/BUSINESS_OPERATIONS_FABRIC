@@ -69,6 +69,7 @@ export const DepositStatusSchema = z.enum(["pending", "paid"]);
 export const FinalSetupStatusSchema = z.enum(["pending", "paid", "not_required"]);
 export const MonthlyStatusSchema = z.enum(["inactive", "pending", "active"]);
 export const PortalInviteStatusSchema = z.enum(["not_sent", "sent", "accepted"]);
+const OptionalNullableStringSchema = z.string().trim().min(1).nullable().optional();
 
 export const AdminTenantBootstrapRequestSchema = z.object({
   tenant_name: z.string().min(2),
@@ -81,8 +82,12 @@ export const AdminTenantBootstrapRequestSchema = z.object({
   final_setup_status: FinalSetupStatusSchema.optional(),
   monthly_status: MonthlyStatusSchema.default("inactive"),
   portal_invite_status: PortalInviteStatusSchema.default("not_sent"),
-  docusign_envelope_id: z.string().trim().min(1).nullable().optional(),
-  onboarding_notes: z.string().trim().min(1).nullable().optional()
+  agreement_provider: OptionalNullableStringSchema,
+  agreement_provider_document_id: OptionalNullableStringSchema,
+  agreement_number: OptionalNullableStringSchema,
+  agreement_signed_at: OptionalNullableStringSchema,
+  docusign_envelope_id: OptionalNullableStringSchema,
+  onboarding_notes: OptionalNullableStringSchema
 });
 
 export const AdminTenantBootstrapResponseSchema = z.object({
@@ -135,6 +140,10 @@ export const TenantBillingStateSchema = z.object({
   stripe_price_id_monthly: z.string().nullable().optional(),
   payment_link_deposit: z.string().nullable().optional(),
   payment_link_final_setup: z.string().nullable().optional(),
+  agreement_provider: z.string().nullable().optional(),
+  agreement_provider_document_id: z.string().nullable().optional(),
+  agreement_number: z.string().nullable().optional(),
+  agreement_signed_at: z.string().nullable().optional(),
   docusign_envelope_id: z.string().nullable().optional(),
   portal_invite_status: PortalInviteStatusSchema,
   onboarding_notes: z.string().nullable().optional(),
@@ -157,6 +166,10 @@ export const TenantBillingStateUpdateSchema = z.object({
   stripe_price_id_monthly: z.string().nullable().optional(),
   payment_link_deposit: z.string().nullable().optional(),
   payment_link_final_setup: z.string().nullable().optional(),
+  agreement_provider: z.string().nullable().optional(),
+  agreement_provider_document_id: z.string().nullable().optional(),
+  agreement_number: z.string().nullable().optional(),
+  agreement_signed_at: z.string().nullable().optional(),
   docusign_envelope_id: z.string().nullable().optional(),
   portal_invite_status: PortalInviteStatusSchema.optional(),
   onboarding_notes: z.string().nullable().optional()

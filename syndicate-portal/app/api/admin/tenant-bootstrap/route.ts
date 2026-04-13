@@ -248,6 +248,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       selected_plan: body.selected_plan
     });
 
+    const agreementProviderDocumentId = body.agreement_provider_document_id ?? body.docusign_envelope_id ?? null;
+
     const seededState = billingStateStore.update({
       tenant_id: result.tenantId,
       tenant_name: body.tenant_name,
@@ -257,7 +259,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       final_setup_status: body.final_setup_status,
       monthly_status: body.monthly_status,
       portal_invite_status: body.portal_invite_status,
-      docusign_envelope_id: body.docusign_envelope_id ?? null,
+      agreement_provider: body.agreement_provider ?? undefined,
+      agreement_provider_document_id: agreementProviderDocumentId,
+      agreement_number: body.agreement_number ?? null,
+      agreement_signed_at: body.agreement_signed_at ?? null,
+      docusign_envelope_id: body.docusign_envelope_id ?? agreementProviderDocumentId,
       onboarding_notes: body.onboarding_notes ?? null
     });
 

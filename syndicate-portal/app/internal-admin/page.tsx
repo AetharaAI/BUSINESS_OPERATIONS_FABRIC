@@ -39,7 +39,10 @@ export default function InternalAdminPage() {
   const [createFinalSetupStatus, setCreateFinalSetupStatus] = useState<TenantBillingState["final_setup_status"]>("pending");
   const [createMonthlyStatus, setCreateMonthlyStatus] = useState<TenantBillingState["monthly_status"]>("inactive");
   const [createInviteStatus, setCreateInviteStatus] = useState<TenantBillingState["portal_invite_status"]>("not_sent");
-  const [createDocuSignEnvelopeId, setCreateDocuSignEnvelopeId] = useState("");
+  const [createAgreementProvider, setCreateAgreementProvider] = useState("");
+  // TODO: replace manual agreement_number entry with generated numbering once the format is finalized.
+  const [createAgreementNumber, setCreateAgreementNumber] = useState("");
+  const [createAgreementProviderDocumentId, setCreateAgreementProviderDocumentId] = useState("");
   const [createOnboardingNotes, setCreateOnboardingNotes] = useState("");
   const [existingTenantId, setExistingTenantId] = useState("");
   const [existingTenantName, setExistingTenantName] = useState("");
@@ -83,7 +86,9 @@ export default function InternalAdminPage() {
         final_setup_status: createFinalSetupStatus,
         monthly_status: createMonthlyStatus,
         portal_invite_status: createInviteStatus,
-        docusign_envelope_id: createDocuSignEnvelopeId.trim() || null,
+        agreement_provider: createAgreementProvider.trim() || null,
+        agreement_provider_document_id: createAgreementProviderDocumentId.trim() || null,
+        agreement_number: createAgreementNumber.trim() || null,
         onboarding_notes: createOnboardingNotes.trim() || null
       });
       setBootstrapResult(payload);
@@ -248,12 +253,32 @@ export default function InternalAdminPage() {
                     </div>
                   </div>
                   <div className="form-row">
-                    <label className="label">DocuSign envelope ID (optional)</label>
+                    <label className="label">Agreement provider (optional)</label>
                     <input
                       className="input"
-                      value={createDocuSignEnvelopeId}
-                      onChange={(e) => setCreateDocuSignEnvelopeId(e.target.value)}
+                      value={createAgreementProvider}
+                      onChange={(e) => setCreateAgreementProvider(e.target.value)}
+                      placeholder="pandadoc, docusign"
                     />
+                  </div>
+                  <div className="grid-2">
+                    <div className="form-row">
+                      <label className="label">Agreement number (optional)</label>
+                      <input
+                        className="input"
+                        value={createAgreementNumber}
+                        onChange={(e) => setCreateAgreementNumber(e.target.value)}
+                        placeholder="AGR-000001"
+                      />
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Agreement provider document ID (optional)</label>
+                      <input
+                        className="input"
+                        value={createAgreementProviderDocumentId}
+                        onChange={(e) => setCreateAgreementProviderDocumentId(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="form-row">
                     <label className="label">Onboarding notes (optional)</label>
@@ -471,11 +496,29 @@ export default function InternalAdminPage() {
 
                         <div className="grid-2">
                           <div className="form-row">
-                            <label className="label">DocuSign envelope ID</label>
+                            <label className="label">Agreement provider</label>
                             <input
                               className="input"
-                              defaultValue={selectedState.docusign_envelope_id ?? ""}
-                              onBlur={(e) => void patchState({ docusign_envelope_id: e.target.value || null })}
+                              defaultValue={selectedState.agreement_provider ?? ""}
+                              onBlur={(e) => void patchState({ agreement_provider: e.target.value.trim() || null })}
+                              placeholder="pandadoc, docusign"
+                            />
+                          </div>
+                          <div className="form-row">
+                            <label className="label">Agreement number</label>
+                            <input
+                              className="input"
+                              defaultValue={selectedState.agreement_number ?? ""}
+                              onBlur={(e) => void patchState({ agreement_number: e.target.value.trim() || null })}
+                              placeholder="AGR-000001"
+                            />
+                          </div>
+                          <div className="form-row">
+                            <label className="label">Agreement provider document ID</label>
+                            <input
+                              className="input"
+                              defaultValue={selectedState.agreement_provider_document_id ?? ""}
+                              onBlur={(e) => void patchState({ agreement_provider_document_id: e.target.value.trim() || null })}
                             />
                           </div>
                           <div className="form-row">

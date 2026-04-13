@@ -73,6 +73,15 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
    - `VOICEOPS_PLATFORM_ADMIN_KEY`
    - `PORTAL_INVITE_TOKEN_SECRET`
    - `VOICEOPS_PASSWORD_RESET_PATH`
+
+## IMPORTANT CHECKPOINT - 2026-04-10
+1. The blocked production issue was loss of `Audit Log` and `Internal Admin` tabs for the operator admin account.
+2. After pulling the portal changes and rebuilding on the VM, the operator verified live that:
+   - `Audit Log` is visible again
+   - `Internal Admin` is visible again
+   - `/internal-admin` loads again
+3. Treat this as the restored baseline before testing any onboarding regressions.
+4. If this disappears again in a future session, stop and compare current live `/api/session/me`, deployed portal commit, and admin authz logic before changing unrelated onboarding code.
 ## Billing Scaffold
 1. Billing route: `/billing`
 2. Internal onboarding state API: `GET|POST|PUT /api/admin/onboarding-state`
@@ -101,12 +110,13 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
 
 ## Operational Flow (First Customers)
 1. Close the customer.
-2. Send DocuSign manually and set agreement state in `/internal-admin`.
+2. Send the agreement manually via the chosen provider and set agreement state in `/internal-admin`.
 3. Copy/send deposit payment link from `/internal-admin`.
 4. Mark deposit state `paid` after Stripe confirmation.
 5. Send portal invite and set invite status `sent`.
 6. Before go-live, copy/send final setup balance link and track status.
 7. Track monthly state (`inactive` -> `pending` -> `active`) for later subscription automation.
+8. Open the invite as the client in a separate browser session and verify admin tabs remain hidden while customer billing/payment surfaces remain visible.
 
 ## Test Commands
 1. `npm run test`
@@ -130,7 +140,8 @@ Customer-facing portal at `voice.syndicateai.co` using a portal app + BFF patter
 1. Session hardening enhancements pending (token refresh, idle timeout policy).
 2. Role mapping currently uses VoiceOps role strings (`owner`/`admin` editable, others read-only for mode changes).
 3. Business profile is view-only in v1 implementation.
-4. Future portal modules are intentionally hidden with TODO markers:
+4. Agreement handling is still a manual operator step; no portal-side automation/webhook status sync is implemented yet.
+5. Future portal modules are intentionally hidden with TODO markers:
    - Team
    - Summaries
    - Escalation contacts

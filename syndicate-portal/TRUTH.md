@@ -7,7 +7,7 @@
 - Backend repo: VoiceOps (separate repo, not modified here)
 
 ## Runtime
-- Public URL: intended `https://voice.syndicateai.co` (live status unknown from this repo)
+- Public URL: `https://voice.syndicateai.co` (operator-verified live in browser on 2026-04-10)
 - API URL: configured by `VOICEOPS_API_BASE_URL` (default `.env.example`: `https://voice.aetherpro.us`)
 - Repo root: `/home/cory/Documents/BUSINESS_OPERATIONS_FABRIC/syndicate-portal`
 - Deploy path: unknown
@@ -29,7 +29,18 @@
 - Verified locally on 2026-04-10:
   - `npm run test` passed
   - `npm run build` passed
-- Live deployment state is not verifiable from this repo alone and is currently unknown.
+
+## IMPORTANT CHECKPOINT - 2026-04-10
+- Admin tabs are back in the live portal for the operator admin session.
+- Live browser verification at `https://voice.syndicateai.co` showed these admin-only tabs visible again:
+  - `Audit Log`
+  - `Internal Admin`
+- Live browser verification also confirmed `/internal-admin` loads again and shows the onboarding/billing control surface:
+  - create tenant + owner
+  - track onboarding state
+  - view Stripe mapping/payment-link area
+- This restored the blocked operator workflow from 2026-04-09/2026-04-10: create tenant, send contract manually, send payment link, then validate client-safe access separately.
+- Remaining known operational gap for this workflow: agreement handling is still manual and not yet automated from this portal.
 
 ## Operator Mechanics
 - Build command: `npm run build`

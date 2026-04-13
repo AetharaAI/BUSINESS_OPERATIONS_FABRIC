@@ -6,7 +6,7 @@
 
 ---
 
-## Starter Pilot
+## Starter Deployment
 **$3,500 setup + $750/month**
 
 Built for smaller deployments that need immediate call coverage improvement without complex routing.
@@ -24,7 +24,7 @@ Built for smaller deployments that need immediate call coverage improvement with
 - $2,000 deposit to begin
 - $1,500 due before go-live
 - $750/month begins at go-live
-- 3-month minimum service term
+- 6-month minimum service term
 
 ---
 
@@ -47,7 +47,7 @@ Built for service businesses with meaningful call volume and more routing comple
 - $3,000 deposit to begin
 - $2,500 due before go-live
 - $1,250/month begins at go-live
-- 3-month minimum service term
+- 6-month minimum service term
 
 ---
 
@@ -90,7 +90,7 @@ Pricing is scoped per environment.
 ---
 
 ## Notes
-- Third-party telephony, model usage, carrier fees, and infrastructure costs may be billed separately unless explicitly included in writing.
+- Third-Party Usage Fees: billed separately unless explicitly included in writing, including telephony/carrier charges, number provisioning, messaging charges, and model/inference usage consumed on Client’s behalf.
 - Custom integrations, CRM work, outbound campaigns, and advanced workflow automation are scoped separately unless included in the proposal.
 - All services are subject to a signed agreement and approved scope.
 

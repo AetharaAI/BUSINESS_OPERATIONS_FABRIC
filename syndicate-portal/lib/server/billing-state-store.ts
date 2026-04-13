@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { Plan, TenantBillingState, TenantBillingStateUpdate } from "@/lib/types/portal";
 import { loadStripePlanMappings } from "@/lib/server/stripe-plan-map";
+import { mergeAgreementFields, normalizeAgreementFields } from "@/lib/shared/agreement-compat";
 
 type BillingStateDatabaseV1 = {
   schema_version: 1;
@@ -23,7 +24,9 @@ const readDb = (): BillingStateDatabaseV1 => {
   ensureDbFile();
   const raw = JSON.parse(readFileSync(DB_PATH, "utf8")) as Partial<BillingStateDatabaseV1>;
   const schemaVersion = raw.schema_version ?? 1;
-  const items = Array.isArray(raw.items) ? raw.items : [];
+  const items = Array.isArray(raw.items)
+    ? (raw.items as TenantBillingState[]).map((item) => normalizeAgreementFields(item))
+    : [];
   return { schema_version: schemaVersion as 1, items };
 };
 
@@ -54,6 +57,10 @@ const createDefaultState = (tenantId: string, tenantName: string | null, plan: P
     stripe_price_id_monthly: defaults.stripe_price_id_monthly,
     payment_link_deposit: defaults.payment_link_deposit,
     payment_link_final_setup: defaults.payment_link_final_setup,
+    agreement_provider: null,
+    agreement_provider_document_id: null,
+    agreement_number: null,
+    agreement_signed_at: null,
     docusign_envelope_id: null,
     portal_invite_status: "not_sent",
     onboarding_notes: null,
@@ -130,12 +137,13 @@ export const billingStateStore = {
       current = applyPlanMapping(current, update.selected_plan);
     }
 
-    const next: TenantBillingState = {
+    const next: TenantBillingState = normalizeAgreementFields({
       ...current,
       ...update,
+      ...mergeAgreementFields(current, update),
       tenant_name: update.tenant_name === undefined ? current.tenant_name : update.tenant_name,
       updated_at: nowIso()
-    };
+    });
 
     db.items[idx] = next;
     writeDb(db);
