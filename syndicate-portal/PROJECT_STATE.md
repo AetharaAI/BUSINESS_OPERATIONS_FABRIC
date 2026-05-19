@@ -31,6 +31,13 @@
 - Local build verification on 2026-04-10:
   - `npm run test` passed (19 tests)
   - `npm run build` passed
+- Dependency security verification on 2026-05-19:
+  - upgraded portal to `next@15.5.18`
+  - upgraded `react` / `react-dom` to `19.1.2`
+  - added npm overrides for patched `postcss` and `ws`
+  - `npm audit` returned `0 vulnerabilities`
+  - `npm run test` passed (`21` tests)
+  - `npm run build` passed
 - Live redeploy verification on 2026-04-10:
   - VM pulled portal changes and rebuilt the Next app
   - operator confirmed admin tabs returned in the live site after rebuild

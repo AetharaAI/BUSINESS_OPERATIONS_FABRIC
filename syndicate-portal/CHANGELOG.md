@@ -1,5 +1,23 @@
 # CHANGELOG.md
 
+## 2026-05-19
+
+### Dependency Security
+- Upgraded portal runtime dependencies to a safer stable baseline:
+  - `next` `15.3.1 -> 15.5.18`
+  - `react` `19.1.0 -> 19.1.2`
+  - `react-dom` `19.1.0 -> 19.1.2`
+- Added npm overrides to pin patched transitive packages:
+  - `postcss` `8.5.15`
+  - `ws` `8.20.1`
+- Regenerated `package-lock.json` from the updated dependency graph.
+
+### Verification
+- Verified locally on 2026-05-19:
+  - `npm audit` reports `0 vulnerabilities`
+  - `npm run test` passed (`21` tests)
+  - `npm run build` passed on `Next.js 15.5.18`
+
 ## 2026-04-13
 
 ### Internal Admin
