@@ -6,12 +6,12 @@ import { AuditLogTable } from "@/components/AuditLogTable";
 import { ErrorPanel, LoadingPanel } from "@/components/LoadStates";
 import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
-import { isInternalAdmin } from "@/lib/client/authz";
+import { canViewAuditLog, isInternalAdmin } from "@/lib/client/authz";
 
 export default function AuditLogPage() {
   const meLoader = useCallback(() => portalApi.me(), []);
   const meState = useApiResource(meLoader);
-  const canAccess = isInternalAdmin(meState.data);
+  const canAccess = canViewAuditLog(meState.data);
   const loader = useCallback(
     () => (canAccess ? portalApi.auditLog({ limit: 50 }) : Promise.resolve({ items: [], next_cursor: null })),
     [canAccess]
@@ -25,11 +25,11 @@ export default function AuditLogPage() {
         <div className="container">
           {meState.isLoading ? <LoadingPanel label="Verifying access..." /> : null}
           {!meState.isLoading && !canAccess ? (
-            <section className="panel alert alert-error">Forbidden. Audit log is internal admin only.</section>
+            <section className="panel alert alert-error">Forbidden. This session does not have audit access.</section>
           ) : null}
           {canAccess && isLoading ? <LoadingPanel label="Loading audit log..." /> : null}
           {canAccess && error ? <ErrorPanel message={error} onRetry={() => void reload()} /> : null}
-          {canAccess && data ? <AuditLogTable items={data.items} /> : null}
+          {canAccess && data ? <AuditLogTable items={data.items} title={isInternalAdmin(meState.data) ? "Audit Log" : "My Activity"} /> : null}
         </div>
       </main>
     </>

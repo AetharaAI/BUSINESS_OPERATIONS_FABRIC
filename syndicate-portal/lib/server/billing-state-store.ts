@@ -64,6 +64,18 @@ const createDefaultState = (tenantId: string, tenantName: string | null, plan: P
     docusign_envelope_id: null,
     portal_invite_status: "not_sent",
     onboarding_notes: null,
+    created_by_user_id: null,
+    created_by_subject: null,
+    created_by_role: null,
+    sales_rep_id: null,
+    sales_rep_email: null,
+    sales_rep_handle: null,
+    attribution_source: null,
+    created_at: nowIso(),
+    onboarding_status: "draft",
+    approval_status: "approved",
+    audit_correlation_id: null,
+    assigned_user_ids: [],
     updated_at: nowIso()
   };
 };
@@ -105,9 +117,39 @@ export const billingStateStore = {
     );
   },
 
-  createOrReplaceForTenant(params: { tenant_id: string; tenant_name?: string | null; selected_plan: Plan }): TenantBillingState {
+  createOrReplaceForTenant(params: {
+    tenant_id: string;
+    tenant_name?: string | null;
+    selected_plan: Plan;
+    created_by_user_id?: string | null;
+    created_by_subject?: string | null;
+    created_by_role?: string | null;
+    sales_rep_id?: string | null;
+    sales_rep_email?: string | null;
+    sales_rep_handle?: string | null;
+    attribution_source?: string | null;
+    created_at?: string | null;
+    onboarding_status?: string | null;
+    approval_status?: string | null;
+    audit_correlation_id?: string | null;
+    assigned_user_ids?: string[];
+  }): TenantBillingState {
     const db = readDb();
-    const next = createDefaultState(params.tenant_id, params.tenant_name ?? null, params.selected_plan);
+    const next = {
+      ...createDefaultState(params.tenant_id, params.tenant_name ?? null, params.selected_plan),
+      created_by_user_id: params.created_by_user_id ?? null,
+      created_by_subject: params.created_by_subject ?? null,
+      created_by_role: params.created_by_role ?? null,
+      sales_rep_id: params.sales_rep_id ?? null,
+      sales_rep_email: params.sales_rep_email ?? null,
+      sales_rep_handle: params.sales_rep_handle ?? null,
+      attribution_source: params.attribution_source ?? null,
+      created_at: params.created_at ?? nowIso(),
+      onboarding_status: params.onboarding_status ?? "draft",
+      approval_status: params.approval_status ?? "approved",
+      audit_correlation_id: params.audit_correlation_id ?? null,
+      assigned_user_ids: params.assigned_user_ids ?? []
+    };
     const idx = db.items.findIndex((item) => item.tenant_id === params.tenant_id);
     if (idx >= 0) db.items[idx] = next;
     else db.items.push(next);
@@ -115,13 +157,41 @@ export const billingStateStore = {
     return next;
   },
 
-  ensureForTenant(params: { tenant_id: string; tenant_name?: string | null; selected_plan?: Plan }): TenantBillingState {
+  ensureForTenant(params: {
+    tenant_id: string;
+    tenant_name?: string | null;
+    selected_plan?: Plan;
+    created_by_user_id?: string | null;
+    created_by_subject?: string | null;
+    created_by_role?: string | null;
+    sales_rep_id?: string | null;
+    sales_rep_email?: string | null;
+    sales_rep_handle?: string | null;
+    attribution_source?: string | null;
+    created_at?: string | null;
+    onboarding_status?: string | null;
+    approval_status?: string | null;
+    audit_correlation_id?: string | null;
+    assigned_user_ids?: string[];
+  }): TenantBillingState {
     const existing = this.getByTenantId(params.tenant_id);
     if (existing) return existing;
     return this.createOrReplaceForTenant({
       tenant_id: params.tenant_id,
       tenant_name: params.tenant_name ?? null,
-      selected_plan: params.selected_plan ?? "starter"
+      selected_plan: params.selected_plan ?? "starter",
+      created_by_user_id: params.created_by_user_id ?? null,
+      created_by_subject: params.created_by_subject ?? null,
+      created_by_role: params.created_by_role ?? null,
+      sales_rep_id: params.sales_rep_id ?? null,
+      sales_rep_email: params.sales_rep_email ?? null,
+      sales_rep_handle: params.sales_rep_handle ?? null,
+      attribution_source: params.attribution_source ?? null,
+      created_at: params.created_at ?? null,
+      onboarding_status: params.onboarding_status ?? null,
+      approval_status: params.approval_status ?? null,
+      audit_correlation_id: params.audit_correlation_id ?? null,
+      assigned_user_ids: params.assigned_user_ids ?? []
     });
   },
 

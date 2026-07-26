@@ -5,6 +5,7 @@ import { safeRouteError, unauthorized } from "@/app/api/_lib/route-utils";
 import { SessionMeSchema } from "@/lib/types/portal";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
 import { isInternalAdmin } from "@/lib/shared/internal-admin";
+import { resolveEffectiveWorkforceSession } from "@/lib/server/workforce-session";
 
 export async function GET(): Promise<NextResponse> {
   try {
@@ -38,16 +39,19 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json({ error: "Invalid session payload" }, { status: 502 });
     }
 
-    const adminAccess = isInternalAdmin(parsed.data);
+    const rawSession = unwrapped && typeof unwrapped === "object" ? (unwrapped as Record<string, unknown>) : {};
+    const sessionMe = await resolveEffectiveWorkforceSession(parsed.data, rawSession);
+    const adminAccess = isInternalAdmin(sessionMe);
     console.info("[portal-authz] session resolved", {
-      email: parsed.data.email ?? null,
-      role: parsed.data.role ?? null,
-      is_platform_admin: parsed.data.is_platform_admin ?? null,
+      email: sessionMe.email ?? null,
+      role: sessionMe.role ?? null,
+      workforce_role: sessionMe.workforce_role ?? null,
+      is_platform_admin: sessionMe.is_platform_admin ?? null,
       isInternalAdmin: adminAccess
     });
 
     return NextResponse.json({
-      ...parsed.data,
+      ...sessionMe,
       is_internal_admin: adminAccess
     });
   } catch (error) {

@@ -3,10 +3,12 @@
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { PortalNav } from "@/components/PortalNav";
 import { ErrorPanel, LoadingPanel } from "@/components/LoadStates";
+import { WebsiteProvisioningPanel } from "@/app/internal-admin/WebsiteProvisioningPanel";
 import { portalApi } from "@/lib/client/api";
 import { useApiResource } from "@/lib/client/use-api-resource";
 import { Plan, TenantBillingState } from "@/lib/types/portal";
-import { isInternalAdmin } from "@/lib/client/authz";
+import { canViewInternalAdmin, isInternalAdmin } from "@/lib/client/authz";
+import { canManageOnboardingOperations, canTrackExistingTenants } from "@/lib/shared/workforce-auth";
 
 const copyToClipboard = async (value: string): Promise<void> => {
   await navigator.clipboard.writeText(value);
@@ -57,11 +59,15 @@ export default function InternalAdminPage() {
     temporary_password?: string | null;
     password_reset_token?: string | null;
     invite_url?: string | null;
+    audit_correlation_id?: string | null;
   }>(null);
 
   const canAccess = useMemo(() => {
-    return isInternalAdmin(meState.data);
+    return canViewInternalAdmin(meState.data);
   }, [meState.data]);
+  const canManageOperations = useMemo(() => canManageOnboardingOperations(meState.data), [meState.data]);
+  const canTrackExisting = useMemo(() => canTrackExistingTenants(meState.data), [meState.data]);
+  const isScopedWorkforce = useMemo(() => canAccess && !isInternalAdmin(meState.data), [canAccess, meState.data]);
 
   const selectedState: TenantBillingState | null = useMemo(() => {
     if (!statesResource.data?.length) return null;
@@ -148,16 +154,22 @@ export default function InternalAdminPage() {
       <main className="content">
         <div className="container stack">
           <section className="panel stack">
-            <h1>Internal Admin Onboarding + Billing</h1>
+            <h1>{isScopedWorkforce ? "Scoped Tenant Onboarding" : "Internal Admin Onboarding + Billing"}</h1>
             <p className="muted">
               Close flow: create/select tenant, set plan, track agreement/payment statuses, copy Stripe payment links, and track invite status.
             </p>
+            {isScopedWorkforce ? (
+              <p className="muted">
+                Scoped workforce access is active. You can create customer tenants, generate invite links, and work only with tenants
+                you created or were assigned. Billing, agreement, and payment state changes remain operator-controlled.
+              </p>
+            ) : null}
           </section>
 
-          {meState.isLoading ? <LoadingPanel label="Verifying admin session..." /> : null}
+          {meState.isLoading ? <LoadingPanel label="Verifying workforce session..." /> : null}
           {meState.error ? <ErrorPanel message={meState.error} onRetry={() => void meState.reload()} /> : null}
           {!meState.isLoading && !meState.error && !canAccess ? (
-            <section className="panel alert alert-error">Forbidden. This route is internal admin only.</section>
+            <section className="panel alert alert-error">Forbidden. This route is limited to authorized workforce sessions.</section>
           ) : null}
 
           {canAccess ? (
@@ -192,94 +204,112 @@ export default function InternalAdminPage() {
                         <option value="operator">operator</option>
                       </select>
                     </div>
-                    <div className="form-row">
-                      <label className="label">Agreement status</label>
-                      <select
-                        className="select"
-                        value={createAgreementStatus}
-                        onChange={(e) => setCreateAgreementStatus(e.target.value as TenantBillingState["agreement_status"])}
-                      >
-                        <option value="draft">draft</option>
-                        <option value="sent">sent</option>
-                        <option value="signed">signed</option>
-                      </select>
-                    </div>
-                    <div className="form-row">
-                      <label className="label">Deposit status</label>
-                      <select
-                        className="select"
-                        value={createDepositStatus}
-                        onChange={(e) => setCreateDepositStatus(e.target.value as TenantBillingState["deposit_status"])}
-                      >
-                        <option value="pending">pending</option>
-                        <option value="paid">paid</option>
-                      </select>
-                    </div>
-                    <div className="form-row">
-                      <label className="label">Final setup status</label>
-                      <select
-                        className="select"
-                        value={createFinalSetupStatus}
-                        onChange={(e) => setCreateFinalSetupStatus(e.target.value as TenantBillingState["final_setup_status"])}
-                      >
-                        <option value="pending">pending</option>
-                        <option value="paid">paid</option>
-                        <option value="not_required">not_required</option>
-                      </select>
-                    </div>
-                    <div className="form-row">
-                      <label className="label">Monthly status</label>
-                      <select
-                        className="select"
-                        value={createMonthlyStatus}
-                        onChange={(e) => setCreateMonthlyStatus(e.target.value as TenantBillingState["monthly_status"])}
-                      >
-                        <option value="inactive">inactive</option>
-                        <option value="pending">pending</option>
-                        <option value="active">active</option>
-                      </select>
-                    </div>
-                    <div className="form-row">
-                      <label className="label">Portal invite status</label>
-                      <select
-                        className="select"
-                        value={createInviteStatus}
-                        onChange={(e) => setCreateInviteStatus(e.target.value as TenantBillingState["portal_invite_status"])}
-                      >
-                        <option value="not_sent">not_sent</option>
-                        <option value="sent">sent</option>
-                        <option value="accepted">accepted</option>
-                      </select>
-                    </div>
+                    {canManageOperations ? (
+                      <div className="form-row">
+                        <label className="label">Agreement status</label>
+                        <select
+                          className="select"
+                          value={createAgreementStatus}
+                          onChange={(e) => setCreateAgreementStatus(e.target.value as TenantBillingState["agreement_status"])}
+                        >
+                          <option value="draft">draft</option>
+                          <option value="sent">sent</option>
+                          <option value="signed">signed</option>
+                        </select>
+                      </div>
+                    ) : null}
+                    {canManageOperations ? (
+                      <div className="form-row">
+                        <label className="label">Deposit status</label>
+                        <select
+                          className="select"
+                          value={createDepositStatus}
+                          onChange={(e) => setCreateDepositStatus(e.target.value as TenantBillingState["deposit_status"])}
+                        >
+                          <option value="pending">pending</option>
+                          <option value="paid">paid</option>
+                        </select>
+                      </div>
+                    ) : null}
+                    {canManageOperations ? (
+                      <div className="form-row">
+                        <label className="label">Final setup status</label>
+                        <select
+                          className="select"
+                          value={createFinalSetupStatus}
+                          onChange={(e) => setCreateFinalSetupStatus(e.target.value as TenantBillingState["final_setup_status"])}
+                        >
+                          <option value="pending">pending</option>
+                          <option value="paid">paid</option>
+                          <option value="not_required">not_required</option>
+                        </select>
+                      </div>
+                    ) : null}
+                    {canManageOperations ? (
+                      <div className="form-row">
+                        <label className="label">Monthly status</label>
+                        <select
+                          className="select"
+                          value={createMonthlyStatus}
+                          onChange={(e) => setCreateMonthlyStatus(e.target.value as TenantBillingState["monthly_status"])}
+                        >
+                          <option value="inactive">inactive</option>
+                          <option value="pending">pending</option>
+                          <option value="active">active</option>
+                        </select>
+                      </div>
+                    ) : null}
+                    {canManageOperations ? (
+                      <div className="form-row">
+                        <label className="label">Portal invite status</label>
+                        <select
+                          className="select"
+                          value={createInviteStatus}
+                          onChange={(e) => setCreateInviteStatus(e.target.value as TenantBillingState["portal_invite_status"])}
+                        >
+                          <option value="not_sent">not_sent</option>
+                          <option value="sent">sent</option>
+                          <option value="accepted">accepted</option>
+                        </select>
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="form-row">
-                    <label className="label">Agreement provider (optional)</label>
-                    <input
-                      className="input"
-                      value={createAgreementProvider}
-                      onChange={(e) => setCreateAgreementProvider(e.target.value)}
-                      placeholder="pandadoc, docusign"
-                    />
-                  </div>
-                  <div className="grid-2">
-                    <div className="form-row">
-                      <label className="label">Agreement number (optional)</label>
-                      <input
-                        className="input"
-                        value={createAgreementNumber}
-                        onChange={(e) => setCreateAgreementNumber(e.target.value)}
-                        placeholder="AGR-000001"
-                      />
-                    </div>
-                    <div className="form-row">
-                      <label className="label">Agreement provider document ID (optional)</label>
-                      <input
-                        className="input"
-                        value={createAgreementProviderDocumentId}
-                        onChange={(e) => setCreateAgreementProviderDocumentId(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  {canManageOperations ? (
+                    <>
+                      <div className="form-row">
+                        <label className="label">Agreement provider (optional)</label>
+                        <input
+                          className="input"
+                          value={createAgreementProvider}
+                          onChange={(e) => setCreateAgreementProvider(e.target.value)}
+                          placeholder="pandadoc, docusign"
+                        />
+                      </div>
+                      <div className="grid-2">
+                        <div className="form-row">
+                          <label className="label">Agreement number (optional)</label>
+                          <input
+                            className="input"
+                            value={createAgreementNumber}
+                            onChange={(e) => setCreateAgreementNumber(e.target.value)}
+                            placeholder="AGR-000001"
+                          />
+                        </div>
+                        <div className="form-row">
+                          <label className="label">Agreement provider document ID (optional)</label>
+                          <input
+                            className="input"
+                            value={createAgreementProviderDocumentId}
+                            onChange={(e) => setCreateAgreementProviderDocumentId(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="muted">
+                      Agreement, payment, and billing state are created with safe defaults here and advanced later by an internal operator.
+                    </p>
+                  )}
                   <div className="form-row">
                     <label className="label">Onboarding notes (optional)</label>
                     <textarea
@@ -302,6 +332,9 @@ export default function InternalAdminPage() {
                     </div>
                     <div>
                       <strong>Owner:</strong> {bootstrapResult.owner_email}
+                    </div>
+                    <div>
+                      <strong>Audit correlation ID:</strong> {bootstrapResult.audit_correlation_id || "n/a"}
                     </div>
                     <div>
                       <strong>Temp password:</strong> {bootstrapResult.temporary_password || "n/a"}
@@ -368,30 +401,32 @@ export default function InternalAdminPage() {
                 ) : null}
               </section>
 
-              <section className="panel stack">
-                <h2>Add Existing Tenant to Tracking</h2>
-                <form className="stack" onSubmit={addExistingTenant}>
-                  <div className="form-row">
-                    <label className="label">Existing tenant ID</label>
-                    <input
-                      className="input"
-                      value={existingTenantId}
-                      onChange={(e) => setExistingTenantId(e.target.value)}
-                      placeholder="tenant_..."
-                      required
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label className="label">Tenant name (optional)</label>
-                    <input className="input" value={existingTenantName} onChange={(e) => setExistingTenantName(e.target.value)} />
-                  </div>
-                  <div>
-                    <button className="btn btn-secondary" type="submit" disabled={isSubmitting}>
-                      Track Existing Tenant
-                    </button>
-                  </div>
-                </form>
-              </section>
+              {canTrackExisting ? (
+                <section className="panel stack">
+                  <h2>Add Existing Tenant to Tracking</h2>
+                  <form className="stack" onSubmit={addExistingTenant}>
+                    <div className="form-row">
+                      <label className="label">Existing tenant ID</label>
+                      <input
+                        className="input"
+                        value={existingTenantId}
+                        onChange={(e) => setExistingTenantId(e.target.value)}
+                        placeholder="tenant_..."
+                        required
+                      />
+                    </div>
+                    <div className="form-row">
+                      <label className="label">Tenant name (optional)</label>
+                      <input className="input" value={existingTenantName} onChange={(e) => setExistingTenantName(e.target.value)} />
+                    </div>
+                    <div>
+                      <button className="btn btn-secondary" type="submit" disabled={isSubmitting}>
+                        Track Existing Tenant
+                      </button>
+                    </div>
+                  </form>
+                </section>
+              ) : null}
 
               <section className="panel stack">
                 <h2>Onboarding State</h2>
@@ -431,52 +466,68 @@ export default function InternalAdminPage() {
                           </div>
                           <div className="form-row">
                             <label className="label">Agreement status</label>
-                            <select
-                              className="select"
-                              value={selectedState.agreement_status}
-                              onChange={(e) => void patchState({ agreement_status: e.target.value as TenantBillingState["agreement_status"] })}
-                            >
-                              <option value="draft">draft</option>
-                              <option value="sent">sent</option>
-                              <option value="signed">signed</option>
-                            </select>
+                            {canManageOperations ? (
+                              <select
+                                className="select"
+                                value={selectedState.agreement_status}
+                                onChange={(e) => void patchState({ agreement_status: e.target.value as TenantBillingState["agreement_status"] })}
+                              >
+                                <option value="draft">draft</option>
+                                <option value="sent">sent</option>
+                                <option value="signed">signed</option>
+                              </select>
+                            ) : (
+                              <input className="input" readOnly value={selectedState.agreement_status} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Deposit status</label>
-                            <select
-                              className="select"
-                              value={selectedState.deposit_status}
-                              onChange={(e) => void patchState({ deposit_status: e.target.value as TenantBillingState["deposit_status"] })}
-                            >
-                              <option value="pending">pending</option>
-                              <option value="paid">paid</option>
-                            </select>
+                            {canManageOperations ? (
+                              <select
+                                className="select"
+                                value={selectedState.deposit_status}
+                                onChange={(e) => void patchState({ deposit_status: e.target.value as TenantBillingState["deposit_status"] })}
+                              >
+                                <option value="pending">pending</option>
+                                <option value="paid">paid</option>
+                              </select>
+                            ) : (
+                              <input className="input" readOnly value={selectedState.deposit_status} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Final setup status</label>
-                            <select
-                              className="select"
-                              value={selectedState.final_setup_status}
-                              onChange={(e) =>
-                                void patchState({ final_setup_status: e.target.value as TenantBillingState["final_setup_status"] })
-                              }
-                            >
-                              <option value="pending">pending</option>
-                              <option value="paid">paid</option>
-                              <option value="not_required">not_required</option>
-                            </select>
+                            {canManageOperations ? (
+                              <select
+                                className="select"
+                                value={selectedState.final_setup_status}
+                                onChange={(e) =>
+                                  void patchState({ final_setup_status: e.target.value as TenantBillingState["final_setup_status"] })
+                                }
+                              >
+                                <option value="pending">pending</option>
+                                <option value="paid">paid</option>
+                                <option value="not_required">not_required</option>
+                              </select>
+                            ) : (
+                              <input className="input" readOnly value={selectedState.final_setup_status} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Monthly status</label>
-                            <select
-                              className="select"
-                              value={selectedState.monthly_status}
-                              onChange={(e) => void patchState({ monthly_status: e.target.value as TenantBillingState["monthly_status"] })}
-                            >
-                              <option value="inactive">inactive</option>
-                              <option value="pending">pending</option>
-                              <option value="active">active</option>
-                            </select>
+                            {canManageOperations ? (
+                              <select
+                                className="select"
+                                value={selectedState.monthly_status}
+                                onChange={(e) => void patchState({ monthly_status: e.target.value as TenantBillingState["monthly_status"] })}
+                              >
+                                <option value="inactive">inactive</option>
+                                <option value="pending">pending</option>
+                                <option value="active">active</option>
+                              </select>
+                            ) : (
+                              <input className="input" readOnly value={selectedState.monthly_status} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Portal invite status</label>
@@ -497,37 +548,53 @@ export default function InternalAdminPage() {
                         <div className="grid-2">
                           <div className="form-row">
                             <label className="label">Agreement provider</label>
-                            <input
-                              className="input"
-                              defaultValue={selectedState.agreement_provider ?? ""}
-                              onBlur={(e) => void patchState({ agreement_provider: e.target.value.trim() || null })}
-                              placeholder="pandadoc, docusign"
-                            />
+                            {canManageOperations ? (
+                              <input
+                                className="input"
+                                defaultValue={selectedState.agreement_provider ?? ""}
+                                onBlur={(e) => void patchState({ agreement_provider: e.target.value.trim() || null })}
+                                placeholder="pandadoc, docusign"
+                              />
+                            ) : (
+                              <input className="input" readOnly value={selectedState.agreement_provider ?? ""} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Agreement number</label>
-                            <input
-                              className="input"
-                              defaultValue={selectedState.agreement_number ?? ""}
-                              onBlur={(e) => void patchState({ agreement_number: e.target.value.trim() || null })}
-                              placeholder="AGR-000001"
-                            />
+                            {canManageOperations ? (
+                              <input
+                                className="input"
+                                defaultValue={selectedState.agreement_number ?? ""}
+                                onBlur={(e) => void patchState({ agreement_number: e.target.value.trim() || null })}
+                                placeholder="AGR-000001"
+                              />
+                            ) : (
+                              <input className="input" readOnly value={selectedState.agreement_number ?? ""} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Agreement provider document ID</label>
-                            <input
-                              className="input"
-                              defaultValue={selectedState.agreement_provider_document_id ?? ""}
-                              onBlur={(e) => void patchState({ agreement_provider_document_id: e.target.value.trim() || null })}
-                            />
+                            {canManageOperations ? (
+                              <input
+                                className="input"
+                                defaultValue={selectedState.agreement_provider_document_id ?? ""}
+                                onBlur={(e) => void patchState({ agreement_provider_document_id: e.target.value.trim() || null })}
+                              />
+                            ) : (
+                              <input className="input" readOnly value={selectedState.agreement_provider_document_id ?? ""} />
+                            )}
                           </div>
                           <div className="form-row">
                             <label className="label">Stripe customer ID</label>
-                            <input
-                              className="input"
-                              defaultValue={selectedState.stripe_customer_id ?? ""}
-                              onBlur={(e) => void patchState({ stripe_customer_id: e.target.value || null })}
-                            />
+                            {canManageOperations ? (
+                              <input
+                                className="input"
+                                defaultValue={selectedState.stripe_customer_id ?? ""}
+                                onBlur={(e) => void patchState({ stripe_customer_id: e.target.value || null })}
+                              />
+                            ) : (
+                              <input className="input" readOnly value={selectedState.stripe_customer_id ?? ""} />
+                            )}
                           </div>
                         </div>
 
@@ -540,6 +607,36 @@ export default function InternalAdminPage() {
                             onBlur={(e) => void patchState({ onboarding_notes: e.target.value || null })}
                           />
                         </div>
+
+                        <section className="panel stack">
+                          <h3>Attribution</h3>
+                          <div className="grid-2">
+                            <div>
+                              <div className="label">created_by_role</div>
+                              <code>{selectedState.created_by_role || "n/a"}</code>
+                            </div>
+                            <div>
+                              <div className="label">created_by_subject</div>
+                              <code>{selectedState.created_by_subject || "n/a"}</code>
+                            </div>
+                            <div>
+                              <div className="label">sales_rep_handle</div>
+                              <code>{selectedState.sales_rep_handle || "n/a"}</code>
+                            </div>
+                            <div>
+                              <div className="label">approval_status</div>
+                              <code>{selectedState.approval_status || "n/a"}</code>
+                            </div>
+                            <div>
+                              <div className="label">onboarding_status</div>
+                              <code>{selectedState.onboarding_status || "n/a"}</code>
+                            </div>
+                            <div>
+                              <div className="label">audit_correlation_id</div>
+                              <code>{selectedState.audit_correlation_id || "n/a"}</code>
+                            </div>
+                          </div>
+                        </section>
 
                         <section className="panel stack">
                           <h3>Stripe Mapping (readonly)</h3>
@@ -601,6 +698,11 @@ export default function InternalAdminPage() {
                             </button>
                           </div>
                         </section>
+
+                        <WebsiteProvisioningPanel
+                          selectedState={selectedState}
+                          canManageOperations={canManageOperations}
+                        />
                       </div>
                     ) : null}
                   </>

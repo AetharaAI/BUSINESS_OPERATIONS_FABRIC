@@ -9,7 +9,8 @@ const protectedRoutes = [
   "/audit-log",
   "/billing",
   "/change-password",
-  "/internal-admin"
+  "/internal-admin",
+  "/onboarding"
 ];
 
 const buildRedirectUrl = (request: NextRequest, pathname: string): URL => {
@@ -46,6 +47,7 @@ export const config = {
     "/billing/:path*",
     "/change-password/:path*",
     "/internal-admin/:path*",
+    "/onboarding/:path*",
     "/login"
   ]
 };

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminSession } from "@/lib/server/admin-auth";
+import { requireWorkforceSession } from "@/lib/server/admin-auth";
 import { voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { PortalAuditLogResponseSchema } from "@/lib/types/portal";
 import { safeRouteError } from "@/app/api/_lib/route-utils";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
+import { canReadAllAuditLog } from "@/lib/shared/workforce-auth";
 
 const asObject = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === "object" ? (value as Record<string, unknown>) : null;
@@ -56,13 +57,14 @@ const normalizeAuditPayload = (payload: unknown): unknown => {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const { token } = await requireAdminSession();
+    const { token, me } = await requireWorkforceSession(["audit.read_all", "audit.read_own_actions"]);
 
     const search = request.nextUrl.searchParams;
     const limit = search.get("limit");
     const since = search.get("since");
-    const actor = search.get("actor");
+    const requestedActor = search.get("actor");
     const eventType = search.get("event_type");
+    const actor = canReadAllAuditLog(me) ? requestedActor : me.email ?? me.subject ?? me.user_id ?? requestedActor;
 
     const voiceOpsParams = new URLSearchParams();
     if (limit) voiceOpsParams.set("limit", limit);

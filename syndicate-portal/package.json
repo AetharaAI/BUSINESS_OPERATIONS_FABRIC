@@ -9,10 +9,16 @@
     "build": "next build",
     "start": "next start -p ${PORT:-3100}",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "apis-verify": "file:/home/cory/Aether-Admin-Platform/apis-verify",
+    "@aws-sdk/client-s3": "^3.1089.0",
+    "drizzle-orm": "^0.45.2",
     "next": "15.5.18",
+    "pg": "^8.22.0",
     "react": "19.1.2",
     "react-dom": "19.1.2",
     "stripe": "18.2.0",
@@ -23,8 +29,10 @@
     "@testing-library/react": "16.2.0",
     "@testing-library/user-event": "14.6.1",
     "@types/node": "22.15.2",
+    "@types/pg": "^8.20.0",
     "@types/react": "19.1.2",
     "@types/react-dom": "19.1.2",
+    "drizzle-kit": "^0.31.10",
     "jsdom": "26.1.0",
     "typescript": "5.8.3",
     "vitest": "3.1.2"

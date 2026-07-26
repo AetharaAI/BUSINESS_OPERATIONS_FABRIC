@@ -59,6 +59,13 @@ export const SessionMeSchema = z.object({
   role: z.string().nullable().optional(),
   is_platform_admin: z.boolean().optional(),
   is_internal_admin: z.boolean().optional(),
+  subject: z.string().nullable().optional(),
+  handle: z.string().nullable().optional(),
+  workforce_role: z.string().nullable().optional(),
+  capability_scope: z.array(z.string()).optional(),
+  tenant_scope_mode: z.string().nullable().optional(),
+  person_id: z.string().nullable().optional(),
+  workspace_id: z.string().nullable().optional(),
   tenant_id: z.string().nullable().optional(),
   tenant_name: z.string().nullable().optional()
 });
@@ -147,6 +154,18 @@ export const TenantBillingStateSchema = z.object({
   docusign_envelope_id: z.string().nullable().optional(),
   portal_invite_status: PortalInviteStatusSchema,
   onboarding_notes: z.string().nullable().optional(),
+  created_by_user_id: z.string().nullable().optional(),
+  created_by_subject: z.string().nullable().optional(),
+  created_by_role: z.string().nullable().optional(),
+  sales_rep_id: z.string().nullable().optional(),
+  sales_rep_email: z.string().nullable().optional(),
+  sales_rep_handle: z.string().nullable().optional(),
+  attribution_source: z.string().nullable().optional(),
+  created_at: z.string().nullable().optional(),
+  onboarding_status: z.string().nullable().optional(),
+  approval_status: z.string().nullable().optional(),
+  audit_correlation_id: z.string().nullable().optional(),
+  assigned_user_ids: z.array(z.string()).default([]),
   updated_at: z.string()
 });
 

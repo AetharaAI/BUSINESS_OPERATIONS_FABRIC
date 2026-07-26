@@ -27,6 +27,28 @@ import {
   SessionMe,
   SessionMeSchema
 } from "@/lib/types/portal";
+import {
+  ComplianceDocumentRequirementSchema,
+  WorkforceDocumentUploadResponse,
+  WorkforceDocumentUploadResponseSchema,
+  WorkforceInviteResponse,
+  WorkforceInviteResponseSchema,
+  WorkforceOnboardingBundle,
+  WorkforceOnboardingBundleListSchema,
+  WorkforceOnboardingBundleSchema,
+  WorkforceOnboardingUpsertRequest,
+  WorkforceSuggestion,
+  WorkforceSuggestionListSchema,
+  WorkforceVerifyRequirementRequest
+} from "@/lib/types/workforce";
+import {
+  WebsiteOfferCatalog,
+  WebsiteProvisioningGetResponseSchema,
+  WebsiteProvisioningStatusUpdateRequest,
+  WebsiteProvisioningSummary,
+  WebsiteProvisioningSummarySchema,
+  WebsiteProvisioningUpsertRequest
+} from "@/lib/types/website-provisioning";
 
 export class PortalApiError extends Error {
   status: number;
@@ -51,6 +73,33 @@ const jsonRequest = async <T>(
       "Content-Type": "application/json",
       ...(options.headers ?? {})
     },
+    credentials: "include"
+  });
+
+  let payload: unknown = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === "object" && "error" in payload
+        ? String((payload as { error?: unknown }).error)
+        : `Request failed: ${path}`;
+
+    throw new PortalApiError(message, response.status, payload);
+  }
+
+  return parse(payload);
+};
+
+const formRequest = async <T>(path: string, body: FormData, parse: (payload: unknown) => T): Promise<T> => {
+  const response = await fetch(path, {
+    method: "POST",
+    body,
     credentials: "include"
   });
 
@@ -201,6 +250,25 @@ export const portalApi = {
       TenantBillingStateSchema.parse(responsePayload)
     ),
 
+  getWebsiteProvisioning: (tenantId: string): Promise<{ item: WebsiteProvisioningSummary | null; catalog: WebsiteOfferCatalog }> => {
+    const params = new URLSearchParams({ tenant_id: tenantId });
+    return jsonRequest(`/api/admin/website-provisioning?${params.toString()}`, { method: "GET" }, (payload) =>
+      WebsiteProvisioningGetResponseSchema.parse(payload)
+    );
+  },
+
+  upsertWebsiteProvisioning: (payload: WebsiteProvisioningUpsertRequest): Promise<WebsiteProvisioningSummary> =>
+    jsonRequest("/api/admin/website-provisioning", { method: "POST", body: JSON.stringify(payload) }, (responsePayload) =>
+      WebsiteProvisioningSummarySchema.parse(responsePayload)
+    ),
+
+  updateWebsiteProvisioningStatus: (
+    payload: WebsiteProvisioningStatusUpdateRequest
+  ): Promise<WebsiteProvisioningSummary> =>
+    jsonRequest("/api/admin/website-provisioning", { method: "PUT", body: JSON.stringify(payload) }, (responsePayload) =>
+      WebsiteProvisioningSummarySchema.parse(responsePayload)
+    ),
+
   billingDocuments: (): Promise<
     TenantBillingState & { signed_documents: Array<{ id: string; name: string; url: string }>; invoices: Array<unknown> }
   > =>
@@ -214,5 +282,45 @@ export const portalApi = {
           : [],
         invoices: Array.isArray(parsed.invoices) ? parsed.invoices : []
       };
-    })
+    }),
+
+  searchPeopleSuggestions: (query: string, limit = 8): Promise<WorkforceSuggestion[]> => {
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    return jsonRequest(`/api/v1/people/suggestions?${params.toString()}`, { method: "GET" }, (payload) =>
+      WorkforceSuggestionListSchema.parse(payload).suggestions
+    );
+  },
+
+  listWorkforceOnboarding: (): Promise<WorkforceOnboardingBundle[]> =>
+    jsonRequest("/api/workforce/onboarding", { method: "GET" }, (payload) =>
+      WorkforceOnboardingBundleListSchema.parse(payload).items
+    ),
+
+  upsertWorkforceOnboarding: (input: WorkforceOnboardingUpsertRequest): Promise<WorkforceOnboardingBundle> =>
+    jsonRequest("/api/workforce/onboarding", { method: "POST", body: JSON.stringify(input) }, (payload) =>
+      WorkforceOnboardingBundleSchema.parse(payload)
+    ),
+
+  sendWorkforceInvite: (onboardingCaseId: string): Promise<WorkforceInviteResponse> =>
+    jsonRequest("/api/workforce/invite", { method: "POST", body: JSON.stringify({ onboarding_case_id: onboardingCaseId }) }, (payload) =>
+      WorkforceInviteResponseSchema.parse(payload)
+    ),
+
+  myWorkforceOnboarding: (): Promise<WorkforceOnboardingBundle> =>
+    jsonRequest("/api/workforce/me/onboarding", { method: "GET" }, (payload) =>
+      WorkforceOnboardingBundleSchema.parse(payload)
+    ),
+
+  uploadOwnWorkforceDocument: (requirementId: string, file: File): Promise<WorkforceDocumentUploadResponse> => {
+    const form = new FormData();
+    form.set("file", file);
+    return formRequest(`/api/workforce/me/requirements/${encodeURIComponent(requirementId)}/upload`, form, (payload) =>
+      WorkforceDocumentUploadResponseSchema.parse(payload)
+    );
+  },
+
+  verifyWorkforceRequirement: (requirementId: string, input: WorkforceVerifyRequirementRequest) =>
+    jsonRequest(`/api/workforce/requirements/${encodeURIComponent(requirementId)}/verify`, { method: "POST", body: JSON.stringify(input) }, (payload) =>
+      ComplianceDocumentRequirementSchema.parse(payload)
+    )
 };

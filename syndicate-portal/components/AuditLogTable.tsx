@@ -1,8 +1,8 @@
 import { PortalAuditLogEntry } from "@/lib/types/portal";
 
-export const AuditLogTable = ({ items }: { items: PortalAuditLogEntry[] }) => (
+export const AuditLogTable = ({ items, title = "Audit Log" }: { items: PortalAuditLogEntry[]; title?: string }) => (
   <section className="panel stack">
-    <h1>Audit Log</h1>
+    <h1>{title}</h1>
     {items.length === 0 ? (
       <p className="muted">No entries available.</p>
     ) : (

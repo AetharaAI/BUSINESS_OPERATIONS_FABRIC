@@ -12,6 +12,9 @@ export const safeRouteError = (error: unknown): NextResponse => {
     if (error.message === "Forbidden") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+    if (error.message === "Not found") {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
   }
 
   if (error instanceof VoiceOpsError) {

@@ -13,6 +13,13 @@ export type PlanMapping = {
   final_setup_status_default: "pending" | "not_required";
 };
 
+export type WebsiteStripeMapping = {
+  build_price_id: string | null;
+  build_payment_link: string | null;
+  monthly_price_id: string | null;
+  monthly_payment_link: string | null;
+};
+
 const extractPriceAndProduct = (content: string, pattern: RegExp): { product: string | null; price: string | null } => {
   const match = content.match(pattern);
   if (!match) return { product: null, price: null };
@@ -84,5 +91,17 @@ export const loadStripePlanMappings = (): Record<Plan, PlanMapping> => {
       payment_link_final_setup: null,
       final_setup_status_default: "not_required"
     }
+  };
+};
+
+export const loadWebsiteStripeMapping = (): WebsiteStripeMapping => {
+  const mappingPath = resolve(process.cwd(), "..", "legal-docs", "Syndicate-Stripe-Prod-Ids.md");
+  const content = readFileSync(mappingPath, "utf8");
+
+  return {
+    monthly_price_id: extractLink(content, /Syndicate AI Web Basic price id - (price_[A-Za-z0-9]+)/i),
+    monthly_payment_link: extractLink(content, /Syndicate AI Web Basic payment link - (https?:\/\/\S+)/i),
+    build_price_id: extractLink(content, /Syn(?:d|id)cate AI Web Basic Build Fee price id - (price_[A-Za-z0-9]+)/i),
+    build_payment_link: extractLink(content, /Syndicate AI Web Basic Build Fee payment link - (https?:\/\/\S+)/i)
   };
 };

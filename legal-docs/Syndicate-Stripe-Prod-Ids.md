@@ -16,3 +16,10 @@ Syndicate Voice Agents — Growth Monthly - prod_UHrQGUZFWm1CIM - price_1TJHhuHc
 
 # Operator
 Syndicate Voice Agents — Operator Monthly - prod_UHrR0CEQT6ORCk - price_1TJHidHctdijlUvAWyjC0HNW
+
+# Syndicate AI Website
+Syndicate AI Web Basic price id - price_1TxLGKHctdijlUvAPhks0OPr
+Syndicate AI Web Basic payment link - https://buy.stripe.com/00w9AT0Or8bvfuj1Yw9sk08
+
+Synidcate AI Web Basic Build Fee price id - price_1TxLHMHctdijlUvAOxMudoiS
+Syndicate AI Web Basic Build Fee payment link - https://buy.stripe.com/8x228rfJl0J381R7iQ9sk07

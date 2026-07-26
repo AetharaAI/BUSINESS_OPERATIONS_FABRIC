@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { safeRouteError } from "@/app/api/_lib/route-utils";
-import { requireAdminSession } from "@/lib/server/admin-auth";
+import { requireWorkforceSession } from "@/lib/server/admin-auth";
 import { serverEnv } from "@/lib/server/env";
 import { createInviteToken, generateTemporaryPassword } from "@/lib/server/invite-tokens";
 import { extractAccessToken, VoiceOpsError, voiceOpsRequest } from "@/lib/server/voiceops-client";
 import { AdminTenantBootstrapRequestSchema } from "@/lib/types/portal";
 import { billingStateStore } from "@/lib/server/billing-state-store";
 import { unwrapVoiceOpsPayload } from "@/lib/server/response-shape";
+import { canManageOnboardingOperations } from "@/lib/shared/workforce-auth";
 
 const extractString = (value: unknown): string | null => (typeof value === "string" && value.length > 0 ? value : null);
 
@@ -156,7 +157,7 @@ const legacyBootstrapFallback = async (params: {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    await requireAdminSession();
+    const { me } = await requireWorkforceSession("tenant.create");
 
     if (!serverEnv.voiceOpsPlatformAdminKey) {
       return NextResponse.json({ error: "Missing VOICEOPS_PLATFORM_ADMIN_KEY in portal environment" }, { status: 500 });
@@ -169,6 +170,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const body = parsedBody.data;
     const portalBaseUrl = resolvePortalBaseUrl(request);
+    const canManageOperations = canManageOnboardingOperations(me);
 
     let result:
       | {
@@ -242,10 +244,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Tenant bootstrap did not return a result" }, { status: 500 });
     }
 
+    const auditCorrelationId = crypto.randomUUID();
+
     billingStateStore.createOrReplaceForTenant({
       tenant_id: result.tenantId,
       tenant_name: body.tenant_name,
-      selected_plan: body.selected_plan
+      selected_plan: body.selected_plan,
+      created_by_user_id: me.user_id ?? null,
+      created_by_subject: me.subject ?? me.email ?? null,
+      created_by_role: me.workforce_role ?? me.role ?? "customer",
+      sales_rep_id: me.workforce_role === "internal_sales_rep" ? me.user_id ?? null : null,
+      sales_rep_email: me.workforce_role === "internal_sales_rep" ? me.email ?? null : null,
+      sales_rep_handle: me.workforce_role === "internal_sales_rep" ? me.handle ?? null : null,
+      attribution_source: me.workforce_role === "internal_sales_rep" ? "internal_sales_rep_portal" : "internal_workforce_portal",
+      created_at: new Date().toISOString(),
+      onboarding_status: "draft",
+      approval_status: me.workforce_role === "internal_sales_rep" ? "pending_internal_review" : "approved",
+      audit_correlation_id: auditCorrelationId,
+      assigned_user_ids: me.user_id ? [me.user_id] : []
     });
 
     const agreementProviderDocumentId = body.agreement_provider_document_id ?? body.docusign_envelope_id ?? null;
@@ -254,16 +270,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       tenant_id: result.tenantId,
       tenant_name: body.tenant_name,
       selected_plan: body.selected_plan,
-      agreement_status: body.agreement_status,
-      deposit_status: body.deposit_status,
-      final_setup_status: body.final_setup_status,
-      monthly_status: body.monthly_status,
-      portal_invite_status: body.portal_invite_status,
-      agreement_provider: body.agreement_provider ?? undefined,
-      agreement_provider_document_id: agreementProviderDocumentId,
-      agreement_number: body.agreement_number ?? null,
-      agreement_signed_at: body.agreement_signed_at ?? null,
-      docusign_envelope_id: body.docusign_envelope_id ?? agreementProviderDocumentId,
+      agreement_status: canManageOperations ? body.agreement_status : undefined,
+      deposit_status: canManageOperations ? body.deposit_status : undefined,
+      final_setup_status: canManageOperations ? body.final_setup_status : undefined,
+      monthly_status: canManageOperations ? body.monthly_status : undefined,
+      portal_invite_status: canManageOperations ? body.portal_invite_status : "not_sent",
+      agreement_provider: canManageOperations ? body.agreement_provider ?? undefined : undefined,
+      agreement_provider_document_id: canManageOperations ? agreementProviderDocumentId : undefined,
+      agreement_number: canManageOperations ? body.agreement_number ?? null : undefined,
+      agreement_signed_at: canManageOperations ? body.agreement_signed_at ?? null : undefined,
+      docusign_envelope_id: canManageOperations ? body.docusign_envelope_id ?? agreementProviderDocumentId : undefined,
       onboarding_notes: body.onboarding_notes ?? null
     });
 
@@ -274,6 +290,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       password_reset_token: result.passwordResetToken,
       invite_token: result.inviteToken,
       invite_url: result.inviteUrl,
+      audit_correlation_id: auditCorrelationId,
       onboarding_state: seededState
     });
   } catch (error) {
